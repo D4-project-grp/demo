@@ -9,7 +9,7 @@ export default function AdminCommission() {
    
         <div className="commission-page">
           <div className="page-header">
-            <h1 className="page-title">Commission Earned</h1>
+            <h1 className="page-title">Commission Earned till today</h1>
             <p className="page-subtitle">Track platform commission earnings</p>
           </div>
 
