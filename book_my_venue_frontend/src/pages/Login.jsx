@@ -12,7 +12,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login: saveLogin } = useAuth();
-  const role = location.state?.role || "Venue Owner";
+  // const role = location.state?.role || "Venue Owner";
 
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});

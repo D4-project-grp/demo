@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router";
 import { useApp } from "../context/AppContext";
+import { useAuth } from "../context/AuthContext";
 import "./Layout.css"
 
 export default function AdminLayout() {
-  const { currentUser, logout } = useApp();
+  const { user, logout } = useAuth();
+  const currentUser=user;
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

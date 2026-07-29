@@ -39,15 +39,7 @@ import CustomerEditProfile from "../pages/customer/CustomerEditProfile";
 import BookingPage from "../pages/customer/BookingPage"
 import PaymentPage from "../pages/customer/PaymentPage"
 import BookingConfirmation from "../pages/customer/BookingConfirmation";
-function AppLayout({ children }) {
-    return (
-        <>
-            <Navbar />
-            <main style={{ minHeight: "70vh" }}>{children}</main>
-            <Footer />
-        </>
-    );
-}
+ 
 const AppRoutes = () => {
     return (
         
@@ -73,7 +65,7 @@ const AppRoutes = () => {
             <Route
                 path="/admin"
                 element={
-                    <ProtectedRoute allowedRoles={["ROLE_ADMIN"]}>
+                    <ProtectedRoute allowedRoles={["ADMIN"]}>
                         <AdminLayout />
                     </ProtectedRoute>
                 }
@@ -93,7 +85,7 @@ const AppRoutes = () => {
             <Route
                 path="/owner"
                 element={
-                    <ProtectedRoute allowedRoles={["ROLE_VENUE_OWNER"]}>
+                    <ProtectedRoute allowedRoles={["VENUE_OWNER"]}>
                         <VenueOwnerLayout />
                     </ProtectedRoute>
                 }
@@ -126,7 +118,7 @@ const AppRoutes = () => {
             <Route
                 path="/customer"
                 element={
-                    <ProtectedRoute allowedRoles={["ROLE_CUSTOMER"]}>
+                    <ProtectedRoute allowedRoles={["CUSTOMER"]}>
                         <CustomerLayout />
                     </ProtectedRoute>
                 }

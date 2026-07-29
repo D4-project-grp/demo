@@ -1,10 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router";
-import { useApp } from "../../context/AppContext";
+// import { useApp } from "../../context/AppContext";
 import "./Dashboard.css";
 
 export default function Dashboard() {
-  const { venues, currentBookings, oldBookings } = useApp();
+  // const { currentBookings, oldBookings } = useApp();
   const navigate = useNavigate();
 
   const totalRevenue = [...currentBookings, ...oldBookings].reduce(
