@@ -51,7 +51,7 @@ public class SecurityConfiguration {
 						request.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/auth/signin", "/api/auth/signup","/venue/**","/uploads/**").permitAll()
 //                         only customer should be able to book venue
 
-								. requestMatchers(HttpMethod.POST, "/api/auth/**").hasAnyAuthority("CUSTOMER","VENUE_OWNER","ADMIN")
+								. requestMatchers("/api/auth/**").hasAnyAuthority("CUSTOMER","VENUE_OWNER","ADMIN")
 								. requestMatchers(HttpMethod.GET, "/api/auth/**").hasAnyAuthority("CUSTOMER","VENUE_OWNER","ADMIN")
 								// Only Admin should be able to approve or reject venue listed by venue owner status - COMPLETE
 //                        .requestMatchers(HttpMethod.PATCH, "/{appId}").hasRole("ADMIN")

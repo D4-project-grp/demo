@@ -1,5 +1,5 @@
 package com.bookmyvenue.services;
-
+import org.springframework.http.HttpStatus;
 import com.bookmyvenue.config.UploadProperties;
 import com.bookmyvenue.custom_exception.AuthenticationFailedException;
 import com.bookmyvenue.custom_exception.ResourceAlreadyExistsException;
@@ -21,7 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.util.List;
 
@@ -118,7 +118,39 @@ Object password) throws AuthenticationExcpetion
         log.info("After: " + usr.getFirstName());
         return "your details are updated successfully";
     }
-
+     @Override
+    public String changePassword(Long userId, PasswordRequest request) {
+        User usr=userRepository.findById(userId).orElseThrow(()->new AuthenticationFailedException("user doesn't exit"));
+        if(!encoder.matches(request.getCurrentPassword(),usr.getPassword())){
+            throw new AuthenticationFailedException("Enter the correct password");
+        }
+        if (encoder.matches(request.getNewPassword(), usr.getPassword())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "New password must be different from the current password."
+            );
+        }
+        usr.setPassword(encoder.encode(request.getNewPassword()));
+        return "password is changed!!";
+    }
+    @Override
+    public String changeProfileImage(Long userId, MultipartFile profileImage) {
+        User usr=userRepository.findById(userId).orElseThrow(()->new AuthenticationFailedException("user doesn't exit"));
+        try{
+            String imagePath = fileStorageService.saveImage(
+                    profileImage,
+                    UploadFolder.PROFILE_IMAGES.getFolderName()
+            );
+            usr.setProfileImg(imagePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        String imageUrl = null;
+        if (usr.getProfileImg() != null) {
+            imageUrl = "http://localhost:2003/uploads/" + usr.getProfileImg();
+        }
+        return imageUrl;
+    }
 
 
 }

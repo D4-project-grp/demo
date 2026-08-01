@@ -22,3 +22,11 @@ export const updateProfile = async (formData) => {
   const { data } = await api.post("/auth/profile",formData);
   return data;
 };
+export const updatePassword = async (formData) => {   
+  const  response = await api.post("/auth/profile/change-password",formData);
+  return response;
+}
+export const updateImage = async (formData) => {
+  const { data } = await api.patch("/auth/profile/change-image",formData);
+  return data;
+}

@@ -15,9 +15,8 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const menuRef = useRef(null);
-  const currentUser =user;
-  console.log(currentUser)
-  // const currentUser=null;
+  
+  const currentUser = user; // Use the user from AuthContext
   useEffect(() => {
     const onClick = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);

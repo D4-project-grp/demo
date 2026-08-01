@@ -58,6 +58,23 @@ public class UserController {
         String msg=userService.updateUserProfile(userId,request);
         return ResponseEntity.ok(new ApiResponse<String>(true,msg,null,LocalDateTime.now()));
     }
+    @PostMapping("/profile/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody PasswordRequest request){
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication authentication=context.getAuthentication();
+        Long userId=(Long)  authentication.getPrincipal();
+        String msg=userService.changePassword(userId,request);
+        return ResponseEntity.ok(new ApiResponse<String>(true,msg,null,LocalDateTime.now()));
+    }
+    @PatchMapping("/profile/change-image")
+    public ResponseEntity<?> changeProfileImage(@RequestParam MultipartFile profileImage){
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication authentication=context.getAuthentication();
+        Long userId=(Long)  authentication.getPrincipal();
 
+        String imageUrl=userService.changeProfileImage(userId,profileImage);
+
+        return ResponseEntity.ok(new ApiResponse<String>(true,null,imageUrl,LocalDateTime.now()));
+    }
 
 }

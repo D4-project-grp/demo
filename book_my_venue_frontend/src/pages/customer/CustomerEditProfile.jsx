@@ -3,12 +3,13 @@ import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import "./EditProfile.css";
-import { getUserProfile,updateProfile } from "../../api/authService";
+import ProfileImage from "../../components/customer/ProfileImage";
+import { getUserProfile, updateProfile, updatePassword ,updateImage} from "../../api/authService";
 export default function CustomerEditProfile() {
 
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
- 
+
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -19,9 +20,9 @@ export default function CustomerEditProfile() {
     locality: "",
     city: "",
     pincode: "",
-   
+    
   });
-   
+
 
   // console.log(user)
   useEffect(() => {
@@ -43,9 +44,9 @@ export default function CustomerEditProfile() {
           locality: profile.address?.locality || "",
           city: profile.address?.city || "",
           pincode: profile.address?.pincode || "",
-           
+
         });
-        setPhotoPreview(profile.profileImg);
+        setPhotoPreview(profile.profileImg || null);
       } catch (err) {
         console.error(err);
       }
@@ -63,9 +64,9 @@ export default function CustomerEditProfile() {
   const [errors, setErrors] = useState({});
   const [pwErrors, setPwErrors] = useState({});
   const [saved, setSaved] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState(null);
+  
 
-  const initials = `${formData.firstName?.[0] || ""}${formData.lastName?.[0] || ""}`.toUpperCase();
+   const [photoPreview, setPhotoPreview] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -77,14 +78,7 @@ export default function CustomerEditProfile() {
     if (pwErrors[e.target.name]) setPwErrors({ ...pwErrors, [e.target.name]: "" });
   };
 
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setPhotoPreview(ev.target.result);
-      reader.readAsDataURL(file);
-    }
-  };
+  
 
   const validateProfile = () => {
     const errs = {};
@@ -108,33 +102,57 @@ export default function CustomerEditProfile() {
     return errs;
   };
 
-  const handleProfileSave = async(e) => {
+  const handleProfileSave = async (e) => {
     e.preventDefault();
     const errs = validateProfile();
     // const pwErrs = validatePasswords();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     // if (Object.keys(pwErrs).length > 0) { setPwErrors(pwErrs); return; }
-    
-    const response=await updateProfile({
-          firstName: formData.firstName ,
-          lastName: formData.lastName ,
-          email: formData.email ,
-          mobileNo: formData.mobile ,
-          address:{ 
-            street:formData.street,
-            locality:formData.locality,
-            city:formData.city,
-            pincode:formData.pincode,
-          }
-     
+
+    const response = await updateProfile({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      mobileNo: formData.mobile,
+      address: {
+        street: formData.street,
+        locality: formData.locality,
+        city: formData.city,
+        pincode: formData.pincode,
+      }
+
     });
-    if(response.success==true){
+    if (response.success == true) {
       toast.success(response.message);
     }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+  const changePassword = async () => {
+    const pwErrs = validatePasswords();
+    if (Object.keys(pwErrs).length > 0) { setPwErrors(pwErrs); return; }
+    // Here you would call your API to change the password
+    try {
+      const { data } = await updatePassword({
+        currentPassword: passwords.current,
+        newPassword: passwords.newPass,
+      });
 
+      toast.success(data.message);
+
+      setPasswords({
+        current: "",
+        newPass: "",
+        confirm: "",
+      });
+
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Failed to update password.";
+
+      toast.error(message);
+    }
+  }
   return (
     <div className="edit-profile">
       <div className="page-header">
@@ -144,28 +162,7 @@ export default function CustomerEditProfile() {
 
       <form onSubmit={handleProfileSave} className="profile-form">
         {/* Profile avatar section */}
-        <div className="profile-avatar-section">
-          <div className="profile-avatar-wrapper">
-            {photoPreview ? (
-              <img src={photoPreview} alt="Profile" className="profile-avatar-img" />
-            ) : (
-              <div className="profile-avatar-initials">{initials}</div>
-            )}
-          </div>
-          <div className="profile-avatar-info">
-            <h2>{formData.firstName} {formData.lastName}</h2>
-
-            <label className="btn-change-photo">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                style={{ display: "none" }}
-              />
-              📷 Change Photo
-            </label>
-          </div>
-        </div>
+        <ProfileImage firstName={formData.firstName} lastName={formData.lastName} photoPreview={photoPreview} setPhotoPreview={setPhotoPreview} />
 
         {saved && (
           <div className="success-banner">
@@ -334,7 +331,7 @@ export default function CustomerEditProfile() {
         </div>
 
         <div className="form-actions">
-          <button type="submit" className="btn-save">
+          <button type="submit" onClick={changePassword} className="btn-save">
             💾 Update Password
           </button>
           <button

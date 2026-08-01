@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import org.springframework.web.server.ResponseStatusException;
 
 
 @RestControllerAdvice
@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
 	}
     @ExceptionHandler(AuthenticationFailedException.class)
     public ResponseEntity<?> handlerAthenticationFailedException(AuthenticationFailedException e){
-    	 return ResponseEntity.badRequest().body(new ApiResponse(false ,e.getMessage(),null,LocalDateTime.now()));
+    	 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse(false ,e.getMessage(),null,LocalDateTime.now()));
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handlerPresentationValidationException(MethodArgumentNotValidException e){
@@ -29,6 +29,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handlerResourceAlreadyExistsException(ResourceAlreadyExistsException e){
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse( false,e.getMessage(), null,LocalDateTime.now()));
 
+    }
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<?> handlerResponseStatusException(ResponseStatusException e){
+        return ResponseEntity.status(e.getStatusCode()).body(new ApiResponse<String>(false,e.getMessage().substring(15),null,LocalDateTime.now()));
     }
     
 }
