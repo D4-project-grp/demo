@@ -27,37 +27,28 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 		try {
-			/*
-			 * 1. Check if Authorization (request) header exists in incoming request
-			 */
+		
+			 
 			String authHeader = request.getHeader("Authorization");
-			/*
-			 * 2. If it's not null & starts with Bearer
-			 */
+		
 			if (authHeader != null && authHeader.startsWith("Bearer ")) {
-				/*
-				 * 3. Extract & validate token
-				 */
+			
 				String jwt = authHeader.substring(7);
 				log.info("*********** JWT {}",jwt);
 				Claims payload = jwtUtils.verifyJwtAndExtractClaims(jwt);
-				/*
-				 * Using custom claims in the payload , create Authentication object
-				 */
+				
 				Long userId = payload.get("user_id", Long.class);
 				String roleName = payload.get("user_role", String.class);
 				UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(userId, null,
 						List.of(new SimpleGrantedAuthority(roleName)));
-				/*
-				 * Store auth object under spring sec ctx holder
-				 */
+				
 				SecurityContextHolder.getContext().setAuthentication(token);
-				// continue with remaining filter chain
+				
 
 			}
 			filterChain.doFilter(request, response);
 		} catch (Exception e) {
-			// => JWT validation failure -> clear spring sec ctx holder
+		
 			SecurityContextHolder.clearContext();
 			// -> send SC 401 + mesg
 			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);// SC 401
