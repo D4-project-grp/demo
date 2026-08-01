@@ -1,0 +1,79 @@
+package com.bookmyvenue.entities;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
+ 
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
+@Entity
+@Table(name="venues")
+
+@AttributeOverride(name="id",column=@Column(name="venue_id"))
+public class Venue extends BaseEntity {
+	@Column(name="venue_name",length=150)
+    private String venueName;
+    @Column(length=1000)
+	private String description;
+	
+	@Column(name="phone_no",length=15)
+    private String phoneNo;
+    
+    private Integer guestCapacity;
+    
+    private Double price;
+    
+    @Embedded
+    private Address address;
+   
+    
+    @OneToMany(mappedBy="venue",cascade=CascadeType.ALL,fetch=FetchType.LAZY,
+    		orphanRemoval=true)//one venue can have multiple menu like starter , main course
+    private List<Menu> menus=new ArrayList<>();;
+
+    @OneToMany(mappedBy="venue",cascade=CascadeType.ALL,fetch=FetchType.LAZY,
+    		orphanRemoval=true) // one venue can have multiple images
+    private List<VenueImage> images=new ArrayList<>();;
+
+    @OneToMany(mappedBy="venue",fetch=FetchType.LAZY)// one venue can have multiple bookings at different date
+    private List<Booking> bookings=new ArrayList<>();;
+    
+    @ManyToOne(fetch=FetchType.EAGER)
+    @JoinColumn(name="owner_id")
+    private User owner;
+     
+    @Column(nullable = false)
+    private VenueStatus status=VenueStatus.PENDING;
+    
+    @JoinTable(
+		    joinColumns = @JoinColumn(name = "venue_id"),
+		    inverseJoinColumns = @JoinColumn(name = "amenity_id")
+	)
+    @ManyToMany(fetch=FetchType.LAZY)
+	private Set<Amenity> amenities=new HashSet<>();
+    
+}
