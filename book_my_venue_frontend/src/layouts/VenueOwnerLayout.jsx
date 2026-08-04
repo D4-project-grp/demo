@@ -94,8 +94,7 @@ export default function VenueOwnerLayout() {
           </div>
         </header>
 
-        {/* Page content */}
-        {/* <main className="main-content">{children}</main> */}
+       
         <Outlet/>
       </div>
     </div>

@@ -1,22 +1,59 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { useApp } from "../../context/AppContext";
+import toast from "react-hot-toast";
+import { useAuth } from "../../context/AuthContext";
 import "./EditProfile.css";
+import ProfileImage from "../../components/customer/ProfileImage";
+import { getUserProfile, updateProfile, updatePassword ,updateImage} from "../../api/authService";
+export default function CustomerEditProfile() {
 
-export default function EditProfile() {
-  const { ownerProfile, updateProfile, currentUser } = useApp();
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
+  
   const [formData, setFormData] = useState({
-    firstName: ownerProfile.firstName || "",
-    lastName: ownerProfile.lastName || "",
-    email: ownerProfile.email || "",
-    mobile: ownerProfile.mobile || "",
-    street: ownerProfile.street || "",
-    locality: ownerProfile.locality || "",
-    city: ownerProfile.city || "",
-    pincode: ownerProfile.pincode || "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    mobile: "",
+    street: "",
+    locality: "",
+    city: "",
+    pincode: "",
+    
   });
+
+
+  // console.log(user)
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await getUserProfile();
+
+        // Adjust this line according to your service
+        const profile = response.data;
+
+        setUser(profile);
+
+        setFormData({
+          firstName: profile.firstName || "",
+          lastName: profile.lastName || "",
+          email: profile.email || "",
+          mobile: profile.mobileNo || "",
+          street: profile.address?.street || "",
+          locality: profile.address?.locality || "",
+          city: profile.address?.city || "",
+          pincode: profile.address?.pincode || "",
+
+        });
+        setPhotoPreview(profile.profileImg || null);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const [passwords, setPasswords] = useState({
     current: "",
@@ -27,9 +64,9 @@ export default function EditProfile() {
   const [errors, setErrors] = useState({});
   const [pwErrors, setPwErrors] = useState({});
   const [saved, setSaved] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState(null);
+  
 
-  const initials = `${formData.firstName?.[0] || ""}${formData.lastName?.[0] || ""}`.toUpperCase();
+   const [photoPreview, setPhotoPreview] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,14 +78,7 @@ export default function EditProfile() {
     if (pwErrors[e.target.name]) setPwErrors({ ...pwErrors, [e.target.name]: "" });
   };
 
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setPhotoPreview(ev.target.result);
-      reader.readAsDataURL(file);
-    }
-  };
+  
 
   const validateProfile = () => {
     const errs = {};
@@ -72,17 +102,57 @@ export default function EditProfile() {
     return errs;
   };
 
-  const handleSave = (e) => {
+  const handleProfileSave = async (e) => {
     e.preventDefault();
     const errs = validateProfile();
-    const pwErrs = validatePasswords();
+    // const pwErrs = validatePasswords();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
-    if (Object.keys(pwErrs).length > 0) { setPwErrors(pwErrs); return; }
-    updateProfile(formData);
+    // if (Object.keys(pwErrs).length > 0) { setPwErrors(pwErrs); return; }
+
+    const response = await updateProfile({
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      mobileNo: formData.mobile,
+      address: {
+        street: formData.street,
+        locality: formData.locality,
+        city: formData.city,
+        pincode: formData.pincode,
+      }
+
+    });
+    if (response.success == true) {
+      toast.success(response.message);
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
+  const changePassword = async () => {
+    const pwErrs = validatePasswords();
+    if (Object.keys(pwErrs).length > 0) { setPwErrors(pwErrs); return; }
+    // Here you would call your API to change the password
+    try {
+      const { data } = await updatePassword({
+        currentPassword: passwords.current,
+        newPassword: passwords.newPass,
+      });
 
+      toast.success(data.message);
+
+      setPasswords({
+        current: "",
+        newPass: "",
+        confirm: "",
+      });
+
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Failed to update password.";
+
+      toast.error(message);
+    }
+  }
   return (
     <div className="edit-profile">
       <div className="page-header">
@@ -90,30 +160,9 @@ export default function EditProfile() {
         <p className="page-subtitle">Update your personal information and account settings</p>
       </div>
 
-      <form onSubmit={handleSave} className="profile-form">
+      <form onSubmit={handleProfileSave} className="profile-form">
         {/* Profile avatar section */}
-        <div className="profile-avatar-section">
-          <div className="profile-avatar-wrapper">
-            {photoPreview ? (
-              <img src={photoPreview} alt="Profile" className="profile-avatar-img" />
-            ) : (
-              <div className="profile-avatar-initials">{initials}</div>
-            )}
-          </div>
-          <div className="profile-avatar-info">
-            <h2>{formData.firstName} {formData.lastName}</h2>
-            <span className="role-badge-profile">Venue Owner</span>
-            <label className="btn-change-photo">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                style={{ display: "none" }}
-              />
-              📷 Change Photo
-            </label>
-          </div>
-        </div>
+        <ProfileImage firstName={formData.firstName} lastName={formData.lastName} photoPreview={photoPreview} setPhotoPreview={setPhotoPreview} />
 
         {saved && (
           <div className="success-banner">
@@ -222,6 +271,20 @@ export default function EditProfile() {
             </div>
           </div>
         </div>
+        <div className="form-actions">
+          <button type="submit" className="btn-save">
+            💾 Save Changes
+          </button>
+          <button
+            type="button"
+            className="btn-cancel"
+            onClick={() => navigate("/dashboard")}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+      <div>
 
         {/* Change Password */}
         <div className="form-section">
@@ -268,8 +331,8 @@ export default function EditProfile() {
         </div>
 
         <div className="form-actions">
-          <button type="submit" className="btn-save">
-            💾 Save Changes
+          <button type="submit" onClick={changePassword} className="btn-save">
+            💾 Update Password
           </button>
           <button
             type="button"
@@ -279,7 +342,7 @@ export default function EditProfile() {
             Cancel
           </button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
