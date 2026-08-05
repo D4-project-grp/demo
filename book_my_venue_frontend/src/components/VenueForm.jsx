@@ -1,42 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import axios from "axios";
 import "./VenueForm.css";
+import { getAllAmenities,getSubscriptionPackages,addVenue } from "../api/venueService";
+// Base URL for your Spring Boot backend — adjust to match your setup
+// (e.g. via .env: VITE_API_BASE_URL=http://localhost:8080)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:2003";
 
-const AMENITIES_LIST = [
-  { key: "Parking", icon: "🅿️" },
-  { key: "AC", icon: "❄️" },
-  { key: "Elevator", icon: "🛗" },
-  { key: "WiFi", icon: "📶" },
-  { key: "CCTV", icon: "📹" },
-  { key: "Generator", icon: "⚡" },
-  { key: "Catering", icon: "🍽️" },
-  { key: "Stage", icon: "🎭" },
-  { key: "Projector", icon: "📽️" },
-  { key: "Changing Room", icon: "👔" },
-];
-
-const PACKAGES = [
-  {
-    key: "monthly",
-    title: "Monthly",
-    price: "₹999 / month",
-    commission: "5% commission per booking",
-    desc: "Great for getting started",
-  },
-  {
-    key: "yearly",
-    title: "Yearly",
-    price: "₹6,999 / year",
-    commission: "3% commission per booking",
-    desc: "Best value — save more annually",
-  },
-];
-
+ 
 const DEFAULT_FOOD_CATEGORIES = [
-  { category: "Starters", items: "" },
-  { category: "Main Course", items: "" },
-  { category: "Desserts", items: "" },
-  { category: "Beverages", items: "" },
+  { category: "Welcome Drinks", items: [{ name: "", price: "", description:"",image: null, imageFile: null,imageKey: crypto.randomUUID() }] },
+  { category: "Welcome Snacks Starters", items: [{ name: "", price: "", description:"", image: null, imageFile: null,imageKey: crypto.randomUUID() }] },
+  { category: "Main Course Vegetarian", items: [{ name: "", price: "", description:"",image: null, imageFile: null,imageKey: crypto.randomUUID() }] },
+  { category: "Main Course Non Vegetarian", items: [{ name: "", price: "", description:"", image: null, imageFile: null,imageKey: crypto.randomUUID() }] },
+  { category: "Dessert", items: [{ name: "", price: "", description:"", image: null, imageFile: null ,imageKey: crypto.randomUUID()}] },
 ];
 
 export default function VenueForm({ initialData, onSubmit, submitLabel = "Submit Listing" }) {
@@ -62,7 +39,51 @@ export default function VenueForm({ initialData, onSubmit, submitLabel = "Submit
   const [imagePreviews, setImagePreviews] = useState(initialData?.images || []);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [activeTab, setActiveTab] = useState("basic");
+
+  // --- Amenities & packages come from the backend, not hardcoded ---
+  const [amenitiesCatalog, setAmenitiesCatalog] = useState([]);
+  const [amenitiesLoading, setAmenitiesLoading] = useState(true);
+  const [amenitiesError, setAmenitiesError] = useState("");
+
+  const [packagesCatalog, setPackagesCatalog] = useState([]);
+  const [packagesLoading, setPackagesLoading] = useState(true);
+  const [packagesError, setPackagesError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getAllAmenities()
+      .then((res) => {
+        if (cancelled) return;
+        // ApiResponse<List<Amenity>> -> { success, message, data, timestamp }
+        setAmenitiesCatalog(res.data.data || []);
+      })
+      .catch(() => {
+        if (!cancelled) setAmenitiesError("Couldn't load amenities. Please retry.");
+      })
+      .finally(() => {
+        if (!cancelled) setAmenitiesLoading(false);
+      });
+
+    getSubscriptionPackages()
+      .then((res) => {
+        if (cancelled) return;
+        console.log(res.data.data)
+        setPackagesCatalog(res.data.data || []);
+      })
+      .catch(() => {
+        if (!cancelled) setPackagesError("Couldn't load subscription plans. Please retry.");
+      })
+      .finally(() => {
+        if (!cancelled) setPackagesLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -70,12 +91,12 @@ export default function VenueForm({ initialData, onSubmit, submitLabel = "Submit
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const toggleAmenity = (amenity) => {
+  const toggleAmenity = (amenityId) => {
     setFormData((prev) => ({
       ...prev,
-      amenities: prev.amenities.includes(amenity)
-        ? prev.amenities.filter((a) => a !== amenity)
-        : [...prev.amenities, amenity],
+      amenities: prev.amenities.includes(amenityId)
+        ? prev.amenities.filter((id) => id !== amenityId)
+        : [...prev.amenities, amenityId],
     }));
   };
 
@@ -94,25 +115,81 @@ export default function VenueForm({ initialData, onSubmit, submitLabel = "Submit
     setImagePreviews(newPreviews);
   };
 
-  const handleFoodMenuChange = (index, field, value) => {
+  // Category-level field (currently just the category name)
+  const handleFoodCategoryChange = (catIndex, field, value) => {
     const updated = formData.foodMenu.map((item, i) =>
-      i === index ? { ...item, [field]: value } : item
+      i === catIndex ? { ...item, [field]: value } : item
     );
     setFormData((prev) => ({ ...prev, foodMenu: updated }));
   };
 
-  const addFoodCategory = () => {
-    setFormData((prev) => ({
-      ...prev,
-      foodMenu: [...prev.foodMenu, { category: "", items: "" }],
-    }));
+
+
+
+  // Individual food item fields (name / price), scoped within a category
+  const handleFoodItemChange = (catIndex, itemIndex, field, value) => {
+    setFormData((prev) => {
+      const foodMenu = [...prev.foodMenu];
+      const items = [...foodMenu[catIndex].items];
+      items[itemIndex] = { ...items[itemIndex], [field]: value };
+      foodMenu[catIndex] = { ...foodMenu[catIndex], items };
+      return { ...prev, foodMenu };
+    });
   };
 
-  const removeFoodCategory = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      foodMenu: prev.foodMenu.filter((_, i) => i !== index),
-    }));
+  const addFoodItem = (catIndex) => {
+    setFormData((prev) => {
+      const foodMenu = [...prev.foodMenu];
+      foodMenu[catIndex] = {
+        ...foodMenu[catIndex],
+        items: [...foodMenu[catIndex].items, { name: "", price: "",description: "", image: null,imageFile:null,
+          imageKey: crypto.randomUUID() }],
+      };
+      return { ...prev, foodMenu };
+    });
+  };
+
+  const removeFoodItem = (catIndex, itemIndex) => {
+    setFormData((prev) => {
+      const foodMenu = [...prev.foodMenu];
+      const remaining = foodMenu[catIndex].items.filter((_, i) => i !== itemIndex);
+      foodMenu[catIndex] = {
+        ...foodMenu[catIndex],
+        items: remaining.length ? remaining : [{ name: "", price: "",description: "", image: null,imageFile:null,imageKey:crypto.randomUUID(), }],
+      };
+      return { ...prev, foodMenu };
+    });
+  };
+
+  // Food item image — a food item has exactly one photo (food_items -> image, 1-to-1)
+  const handleFoodItemImageUpload = (catIndex, itemIndex, fileList) => {
+    const file = Array.from(fileList || []).find((f) => f.type.startsWith("image/"));
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      setFormData((prev) => {
+        const foodMenu = [...prev.foodMenu];
+        const items = [...foodMenu[catIndex].items];
+        // `image` = preview (data URL) shown in the thumbnail
+        // `imageFile` = the real File object that actually gets uploaded
+        items[itemIndex] = { ...items[itemIndex], image: dataUrl, imageFile: file };
+        foodMenu[catIndex] = { ...foodMenu[catIndex], items };
+        return { ...prev, foodMenu };
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeFoodItemImage = (catIndex, itemIndex) => {
+    setFormData((prev) => {
+      const foodMenu = [...prev.foodMenu];
+      const items = [...foodMenu[catIndex].items];
+      items[itemIndex] = { ...items[itemIndex], image: null, imageFile: null };
+      foodMenu[catIndex] = { ...foodMenu[catIndex], items };
+      return { ...prev, foodMenu };
+    });
   };
 
   const validate = () => {
@@ -129,8 +206,73 @@ export default function VenueForm({ initialData, onSubmit, submitLabel = "Submit
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const buildVenueFormData = () => {
+    const fd = new FormData();
+
+    
+    const payload = {
+      venueName: formData.name,
+      phoneNo: formData.phone,
+      guestCapacity: formData.guests,
+      description: formData.description,
+      price: formData.price,
+      address: {
+        street: formData.street,
+        locality: formData.locality,
+        city: formData.city,
+        // Address.pincode is Integer on the backend — form inputs give you
+        // a string, so convert it (Number("") is 0, not NaN, so guard for that).
+        pincode: formData.pincode ? Number(formData.pincode) : null
+      }
+      ,
+      amenityIds: formData.amenities, // array of amenity_id
+      packageId: formData.package, // selected subscription package id
+      foodMenu: formData.foodMenu.map((category) => ({
+        category: category.category,
+        items: category.items
+          .filter((item) => item.name.trim()) // skip empty rows
+          .map((item) => ({
+            name: item.name,
+            price: item.price,
+            description:item.description, 
+            imageKey:item.imageKey,
+            hasImage: Boolean(item.imageFile),
+          })),
+      })),
+    };
+    console.log("Food menu before sending:");
+console.log(JSON.stringify(payload.foodMenu, null, 2));
+    fd.append("data", new Blob([JSON.stringify(payload)], { type: "application/json" }));
+
+    // 2. Venue images (multiple)
+    imageFiles.forEach((file) => {
+      fd.append("venueImages", file);
+    });
+
+    
+   
+    formData.foodMenu.forEach((category) => {
+
+      category.items.forEach((item) => {
+    
+        if(item.imageFile){
+    
+          fd.append(
+            item.imageKey,
+            item.imageFile
+          );
+    
+        }
+    
+      });
+    
+    });
+    return fd;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError("");
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
@@ -142,11 +284,29 @@ export default function VenueForm({ initialData, onSubmit, submitLabel = "Submit
       }
       return;
     }
+
     setLoading(true);
-    setTimeout(() => {
-      onSubmit({ ...formData, images: imagePreviews });
+    try {
+      const fd = buildVenueFormData();
+      // const res = await axios.post(`${API_BASE_URL}/api/venue/listing`, fd);
+      const res=await addVenue();
+      // Don't set a Content-Type header manually — axios/the browser sets
+      // the correct "multipart/form-data; boundary=..." automatically when
+      // the body is a FormData instance. Setting it yourself without a
+      // boundary breaks multipart parsing on the backend.
+
+      if (onSubmit) {
+        onSubmit(res.data.data);
+      } else {
+        navigate("/my-listings");
+      }
+    } catch (err) {
+      setSubmitError(
+        err.response?.data?.message || "Something went wrong while creating your listing. Please try again."
+      );
+    } finally {
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -366,27 +526,45 @@ export default function VenueForm({ initialData, onSubmit, submitLabel = "Submit
             <h3 className="section-heading">Select Amenities</h3>
             <p className="section-note">Choose all amenities available at your venue.</p>
 
-            <div className="amenities-grid">
-              {AMENITIES_LIST.map(({ key, icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  className={`amenity-btn ${formData.amenities.includes(key) ? "amenity-selected" : ""}`}
-                  onClick={() => toggleAmenity(key)}
-                >
-                  <span className="amenity-btn-icon">{icon}</span>
-                  <span>{key}</span>
-                  {formData.amenities.includes(key) && (
-                    <span className="amenity-check">✓</span>
-                  )}
-                </button>
-              ))}
-            </div>
+            {amenitiesLoading && <p className="section-note">Loading amenities…</p>}
+            {amenitiesError && <p className="error-msg">{amenitiesError}</p>}
+
+            {!amenitiesLoading && !amenitiesError && (
+              <div className="amenities-grid">
+                {amenitiesCatalog.map((amenity) => {
+                  // Adjust these field names if your Amenity entity serializes
+                  // differently — console.log(amenitiesCatalog) once to confirm.
+                  const id = amenity.amenityId ?? amenity.id;
+                  const name = amenity.amenityName ?? amenity.name;
+                  const logo = amenity.logoImg;
+                  const selected = formData.amenities.includes(id);
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      className={`amenity-btn ${selected ? "amenity-selected" : ""}`}
+                      onClick={() => toggleAmenity(id)}
+                    >
+                      {logo ? (
+                        <img src={logo} alt="" className="amenity-btn-logo" style={{ width: 18, height: 18 }} />
+                      ) : (
+                        <span className="amenity-btn-icon">✓</span>
+                      )}
+                      <span>{name}</span>
+                      {selected && <span className="amenity-check">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {formData.amenities.length > 0 && (
               <div className="selected-amenities">
                 <strong>Selected ({formData.amenities.length}):</strong>{" "}
-                {formData.amenities.join(", ")}
+                {amenitiesCatalog
+                  .filter((a) => formData.amenities.includes(a.amenityId ?? a.id))
+                  .map((a) => a.amenityName ?? a.name)
+                  .join(", ")}
               </div>
             )}
           </div>
@@ -408,48 +586,107 @@ export default function VenueForm({ initialData, onSubmit, submitLabel = "Submit
           <div className="form-section-card">
             <h3 className="section-heading">Food Menu</h3>
             <p className="section-note">
-              Add your food menu details for banquets, weddings, and parties. List items for each category.
+              Add your food menu details for banquets, weddings, and parties. Add items under each category, with photos for each dish.
             </p>
 
             <div className="food-menu-list">
-              {formData.foodMenu.map((item, index) => (
-                <div key={index} className="food-menu-item">
+              {formData.foodMenu.map((category, catIndex) => (
+                <div key={catIndex} className="food-menu-item">
                   <div className="food-menu-header">
                     <input
                       type="text"
-                      value={item.category}
-                      onChange={(e) => handleFoodMenuChange(index, "category", e.target.value)}
+                      value={category.category}
+                      readOnly
+                      onChange={(e) => handleFoodCategoryChange(catIndex, "category", e.target.value)}
                       placeholder="Category (e.g. Starters)"
                       className="food-category-input"
                     />
-                    {formData.foodMenu.length > 1 && (
-                      <button
-                        type="button"
-                        className="btn-remove-food"
-                        onClick={() => removeFoodCategory(index)}
-                      >
-                        ✕
-                      </button>
-                    )}
+
                   </div>
-                  <textarea
-                    value={item.items}
-                    onChange={(e) => handleFoodMenuChange(index, "items", e.target.value)}
-                    placeholder="List items separated by commas (e.g. Paneer Tikka, Chicken Tikka, Veg Platter)"
-                    rows={2}
-                    className="food-items-input"
-                  />
+
+                  <div className="food-item-list">
+                    {category.items.map((item, itemIndex) => (
+                      <div key={itemIndex} className="food-item-card">
+                        <div className="food-item-row">
+                          <input
+                            type="text"
+                            value={item.name}
+                            onChange={(e) => handleFoodItemChange(catIndex, itemIndex, "name", e.target.value)}
+                            placeholder="Item name (e.g. Paneer Tikka)"
+                            className="food-item-name-input"
+                          />
+                          <input
+                            type="number"
+                            min="0"
+                            value={item.price}
+                            onChange={(e) => handleFoodItemChange(catIndex, itemIndex, "price", e.target.value)}
+                            placeholder="Price"
+                            className="food-item-price-input"
+                          />
+                          <input
+                            type="text"
+                            value={item.description}
+                            onChange={(e) => handleFoodItemChange(catIndex, itemIndex, "description", e.target.value)}
+                            placeholder="Description"
+                            className="food-item-description-input"
+                          />
+                          {category.items.length > 1 && (
+                            <button
+                              type="button"
+                              className="btn-remove-item"
+                              onClick={() => removeFoodItem(catIndex, itemIndex)}
+                              aria-label="Remove item"
+                            >
+                              ✕
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="food-item-images">
+                          {item.image ? (
+                            <div className="food-image-thumb">
+                              <img src={item.image} alt={item.name || "Food item"} />
+                              <button
+                                type="button"
+                                className="food-image-remove"
+                                onClick={() => removeFoodItemImage(catIndex, itemIndex)}
+                                aria-label="Remove image"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="food-image-upload">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  handleFoodItemImageUpload(catIndex, itemIndex, e.target.files);
+                                  e.target.value = "";
+                                }}
+                                hidden
+                              />
+                              <span className="food-image-upload-icon">+</span>
+                              <span className="food-image-upload-label">Add photo</span>
+                            </label>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      className="btn-add-item"
+                      onClick={() => addFoodItem(catIndex)}
+                    >
+                      + Add Item
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
 
-            <button
-              type="button"
-              className="btn-add-category"
-              onClick={addFoodCategory}
-            >
-              + Add Category
-            </button>
+
           </div>
 
           <div className="tab-nav-footer">
@@ -472,27 +709,43 @@ export default function VenueForm({ initialData, onSubmit, submitLabel = "Submit
               Choose a subscription plan. Commission is paid to the platform per confirmed booking as per the selected plan.
             </p>
 
-            <div className="packages-grid">
-              {PACKAGES.map((pkg) => (
-                <div
-                  key={pkg.key}
-                  className={`package-card ${formData.package === pkg.key ? "package-selected" : ""}`}
-                  onClick={() => setFormData((prev) => ({ ...prev, package: pkg.key }))}
-                >
-                  <div className="package-header">
-                    <h4>{pkg.title}</h4>
-                    {formData.package === pkg.key && (
-                      <span className="package-check">✓ Selected</span>
-                    )}
-                  </div>
-                  <div className="package-price">{pkg.price}</div>
-                  <div className="package-commission">
-                    <span className="commission-badge">{pkg.commission}</span>
-                  </div>
-                  <p className="package-desc">{pkg.desc}</p>
-                </div>
-              ))}
-            </div>
+            {packagesLoading && <p className="section-note">Loading subscription plans…</p>}
+            {packagesError && <p className="error-msg">{packagesError}</p>}
+
+            {!packagesLoading && !packagesError && (
+              <div className="packages-grid">
+                {packagesCatalog.map((pkg) => {
+                  // Adjust these field names to match SubscriptionPackageResponse's
+                  // actual JSON — console.log(packagesCatalog) once to confirm.
+                  const id = pkg.packageId;
+                  const title = pkg.packageName ?? pkg.title;
+                  const price = pkg.subscriptionAmount
+                    ;
+                  const commission = pkg.bookingDiscountPercentage != null
+                    ? `${pkg.bookingDiscountPercentage}% commission per booking`
+                    : pkg.commission;
+                  const desc = pkg.description ?? pkg.desc;
+                  const selected = formData.package === id;
+                  return (
+                    <div
+                      key={id}
+                      className={`package-card ${selected ? "package-selected" : ""}`}
+                      onClick={() => setFormData((prev) => ({ ...prev, package: id }))}
+                    >
+                      <div className="package-header">
+                        <h4>{title}</h4>
+                        {selected && <span className="package-check">✓ Selected</span>}
+                      </div>
+                      <div className="package-price">₹{price}</div>
+                      <div className="package-commission">
+                        <span className="commission-badge">{commission}</span>
+                      </div>
+                      <p className="package-desc">{desc}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {errors.package && (
               <span className="error-msg" style={{ marginTop: "8px", display: "block" }}>
@@ -503,10 +756,12 @@ export default function VenueForm({ initialData, onSubmit, submitLabel = "Submit
             <div className="commission-note">
               <span>ℹ️</span>
               <p>
-                <strong>Note:</strong> Commission is paid to the platform per confirmed booking as per the selected plan. Monthly plan charges 5% and Yearly plan charges 3% per booking.
+                <strong>Note:</strong> Commission is paid to the platform per confirmed booking as per the selected plan.
               </p>
             </div>
           </div>
+
+          {submitError && <div className="error-msg" style={{ padding: "10px 0" }}>{submitError}</div>}
 
           <div className="tab-nav-footer">
             <button type="button" className="btn-back" onClick={() => setActiveTab("food")}>

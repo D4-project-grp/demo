@@ -1,18 +1,10 @@
 package com.bookmyvenue.entities;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,17 +30,24 @@ public class FoodItem extends BaseEntity {
 	@Column(length=1000)
     private String description;
     
-    private Double price;
+    private BigDecimal price;
     
     @ManyToOne(fetch=FetchType.EAGER)//many food items can be associated with one menu 
     @JoinColumn(name="menu_id")
     private Menu menu;
-    
-    @OneToMany(mappedBy="foodItem",cascade=CascadeType.ALL,
-    		orphanRemoval=true,fetch=FetchType.LAZY)
-    private List<FoodImage> images;
+
+    @Column(name="img_url")
+    private String imgUrl;
 
     @OneToMany(mappedBy="foodItem",fetch=FetchType.LAZY)
-    private List<BookedFoodItem> bookedFoodItems;
-    
+    private List<BookedFoodItem> bookedFoodItems=new ArrayList<>();
+
+    public FoodItem(String name, FoodType foodType, String description, BigDecimal price, String imgUrl) {
+        this.foodName=name;
+        this.foodType=foodType;
+        this.description=description;
+        this.price=price;
+        this.imgUrl=imgUrl;
+
+    }
 }

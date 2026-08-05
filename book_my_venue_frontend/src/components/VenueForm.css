@@ -362,6 +362,177 @@
   border-color: #2563eb;
 }
 
+/* Individual food items within a category */
+.food-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.food-item-card {
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 9px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.food-item-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.food-item-name-input,.food-item-description-input {
+  flex: 1 1 calc(50% - 4px);
+  min-width: 140px;
+  padding: 9px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 7px;
+  font-size: 13px;
+  color: #1e293b;
+  background: #f8fafc;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.food-item-name-input ,.food-item-description-input:focus {
+  border-color: #2563eb;
+  background: white;
+}
+
+.food-item-price-input {
+  flex: 1 1 calc(50% - 4px);
+  min-width: 90px;
+  padding: 9px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 7px;
+  font-size: 13px;
+  color: #1e293b;
+  background: #f8fafc;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.food-item-price-input:focus {
+  border-color: #2563eb;
+  background: white;
+}
+
+.btn-remove-item {
+  width: 32px;
+  height: 32px;
+  background: #f8fafc;
+  color: #94a3b8;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 7px;
+  font-size: 11px;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.btn-remove-item:hover {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #fecaca;
+}
+/* Per-item image thumbnails + upload tile */
+.food-item-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.food-image-thumb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid #e2e8f0;
+}
+
+.food-image-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.food-image-remove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.food-image-remove:hover {
+  background: #dc2626;
+}
+
+.food-image-upload {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  border: 1.5px dashed #bfdbfe;
+  background: #eff6ff;
+  color: #1a3c6e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.food-image-upload:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.food-image-upload-icon {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.food-image-upload-label {
+  font-size: 9px;
+  font-weight: 600;
+}
+
+/* Add item button (sits below each category's item list) */
+.btn-add-item {
+  align-self: flex-start;
+  padding: 8px 16px;
+  background: white;
+  color: #1a3c6e;
+  border: 1.5px dashed #bfdbfe;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-add-item:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+}
+
 .btn-add-category {
   padding: 10px 20px;
   background: #eff6ff;

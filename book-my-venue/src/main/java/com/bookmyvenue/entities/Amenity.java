@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -33,12 +34,17 @@ public class Amenity {
 	@Column(name="amenity_id")
     private Long amenityId;
 	
-	@Column(name="amenity_name")
+	@Column(name="amenity_name",unique = true)
 	private String amenityName;
 	
-	@Column(name="logo_url",length=255)
-	private String logoUrl;
-	
+//	@Column(name="logo_url",length=255)
+//	private String logoUrl;
+
 	@ManyToMany(mappedBy="amenities",fetch = FetchType.LAZY)
+	@JsonIgnore
 	private Set<Venue> venues= new HashSet<>();;
+
+	public Amenity(String amenity) {
+		this.amenityName=amenity;
+	}
 }

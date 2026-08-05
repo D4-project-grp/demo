@@ -3,11 +3,13 @@ package com.bookmyvenue.custom_exception;
 import java.time.LocalDateTime;
 
 import com.bookmyvenue.dto.ApiResponse;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.server.ResponseStatusException;
 
 
@@ -33,6 +35,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<?> handlerResponseStatusException(ResponseStatusException e){
         return ResponseEntity.status(e.getStatusCode()).body(new ApiResponse<String>(false,e.getMessage().substring(15),null,LocalDateTime.now()));
+    }
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<?> handlerMultipartException(MultipartException e){
+        String msg="you forgot to upload the images";
+        return ResponseEntity.badRequest().body(new ApiResponse<String>(false,msg,null,LocalDateTime.now()));
     }
     
 }

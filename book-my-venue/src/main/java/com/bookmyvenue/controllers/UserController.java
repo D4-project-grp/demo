@@ -71,9 +71,7 @@ public class UserController {
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication authentication=context.getAuthentication();
         Long userId=(Long)  authentication.getPrincipal();
-
         String imageUrl=userService.changeProfileImage(userId,profileImage);
-
         return ResponseEntity.ok(new ApiResponse<String>(true,null,imageUrl,LocalDateTime.now()));
     }
 

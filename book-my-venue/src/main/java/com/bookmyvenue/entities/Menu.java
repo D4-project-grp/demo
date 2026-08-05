@@ -30,8 +30,8 @@ import lombok.ToString;
 @Table(name="menus")
 @AttributeOverride(name="id",column=@Column(name="menu_id"))
 public class Menu extends BaseEntity{
-	@Column(name="menu_name",length=150)
-    private String menuName;
+//	@Column(name="menu_name",length=150)
+//    private String menuName;
 	
 	@Column(name="menu_type")
 	@Enumerated(EnumType.STRING)

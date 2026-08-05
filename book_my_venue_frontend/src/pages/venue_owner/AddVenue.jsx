@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import { useApp } from "../../context/AppContext";
+
 import VenueForm from "../../components/VenueForm";
 import "./AddVenue.css";
 
 export default function AddVenue() {
-  const { addVenue } = useApp();
+
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (data) => {
-    addVenue(data);
+
     setSubmitted(true);
     setTimeout(() => navigate("/my-listings"), 2000);
   };

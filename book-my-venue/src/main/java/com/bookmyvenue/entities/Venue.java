@@ -1,5 +1,6 @@
 package com.bookmyvenue.entities;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +33,7 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 @Entity
 @Table(name="venues")
-
+@ToString
 @AttributeOverride(name="id",column=@Column(name="venue_id"))
 public class Venue extends BaseEntity {
 	@Column(name="venue_name",length=150)
@@ -45,7 +46,7 @@ public class Venue extends BaseEntity {
     
     private Integer guestCapacity;
     
-    private Double price;
+    private BigDecimal price;
     
     @Embedded
     private Address address;
@@ -75,5 +76,12 @@ public class Venue extends BaseEntity {
 	)
     @ManyToMany(fetch=FetchType.LAZY)
 	private Set<Amenity> amenities=new HashSet<>();
-    
+
+    @OneToMany(
+            mappedBy = "venue",
+            cascade = CascadeType.ALL
+    )
+    private List<VenueSubscription> subscriptions=new ArrayList<>();
+
+
 }
