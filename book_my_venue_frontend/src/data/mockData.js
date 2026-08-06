@@ -358,22 +358,22 @@ export const AMENITIES = AMENITY_POOL;
 
 function seed() {
   if (!localStorage.getItem("vb_venues")) {
-    localStorage.setItem("vb_venues", JSON.stringify(seedVenues()));
+//    localStorage.setItem("vb_venues", JSON.stringify(seedVenues()));
   }
   if (!localStorage.getItem("vb_reviews")) {
-    localStorage.setItem("vb_reviews", JSON.stringify(seedReviews()));
+//    localStorage.setItem("vb_reviews", JSON.stringify(seedReviews()));
   }
   if (!localStorage.getItem("vb_users")) {
-    localStorage.setItem("vb_users", JSON.stringify([]));
+//    localStorage.setItem("vb_users", JSON.stringify([]));
   }
   if (!localStorage.getItem("vb_bookings")) {
-    localStorage.setItem("vb_bookings", JSON.stringify([]));
+//    localStorage.setItem("vb_bookings", JSON.stringify([]));
   }
 }
 seed();
 
 const read = (key) => JSON.parse(localStorage.getItem(key) || "[]");
-const write = (key, val) => localStorage.setItem(key, JSON.stringify(val));
+//const write = (key, val) => localStorage.setItem(key, JSON.stringify(val));
 
 // Menus & food items are derived deterministically from the seeded venues
 // (mirrors the `menus` / `food_items` tables, each menu scoped to a venue_id).

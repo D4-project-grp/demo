@@ -4,8 +4,8 @@ export default function ProtectedRoute({ allowedRoles, children }) {
     // localStorage.setItem("role","ROLE_CUSTOMER");    
     // localStorage.setItem("role","ROLE_VENUE_OWNER");    
     // localStorage.setItem("role","ROLE_ADMIN");    
-    const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user"));
+    const token = sessionStorage.getItem("token");
+    const user = JSON.parse(sessionStorage.getItem("user"));
     // console.log(token)
     // console.log(user)
     if (!token)

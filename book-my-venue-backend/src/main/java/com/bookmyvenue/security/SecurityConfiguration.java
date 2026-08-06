@@ -1,4 +1,4 @@
-<<<<<<< HEAD:book-my-venue/src/main/java/com/bookmyvenue/security/SecurityConfiguration.java
+
 package com.bookmyvenue.security;
 
 import org.springframework.context.annotation.Bean;
@@ -99,6 +99,4 @@ public class SecurityConfiguration {
 		return source;
 	}
 }
-=======
 
->>>>>>> feature/admven:book-my-venue-backend/src/main/java/com/bookmyvenue/security/SecurityConfiguration.java

@@ -32,7 +32,7 @@ export default function Navbar() {
 
   const selectCity = (c) => {
     setCity(c);
-    localStorage.setItem("vb_city", c);
+//     localStorage.setItem("vb_city", c);
     setCityOpen(false);
   };
 

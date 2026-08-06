@@ -24,13 +24,13 @@ import java.util.Set;
 @RequiredArgsConstructor
 @RequestMapping("/api/venues")
 public class VenueController {
-<<<<<<< HEAD:book-my-venue/src/main/java/com/bookmyvenue/controllers/VenueController.java
+
     final private VenueService venueService;
     final private MenuService menuService;
-    @PostMapping("")
-=======
 
->>>>>>> feature/admven:book-my-venue-backend/src/main/java/com/bookmyvenue/controllers/VenueController.java
+
+
+    @PostMapping("")
     public ResponseEntity<?> addVenue(
             @RequestPart("data")  AddVenueRequest request, @RequestPart(value = "venueImages") List<MultipartFile> venueImages, @RequestParam Map<String, MultipartFile> allParts
     ) {
@@ -48,10 +48,10 @@ public class VenueController {
     }
 
     @GetMapping("")
-    public ResponseEntity<?> getAllVenues(){
-        List<VenueCardResponse> venueCardResponse=venueService.getAllVenues();
-        return ResponseEntity.ok(new ApiResponse<List<VenueCardResponse>>(true,null, venueCardResponse, LocalDateTime.now()));
-
+    public ResponseEntity<?> getAllVenues() {
+        List<VenueCardResponse> venueCardResponse = venueService.getAllVenues();
+        return ResponseEntity.ok(new ApiResponse<List<VenueCardResponse>>(true, null, venueCardResponse, LocalDateTime.now()));
+    }
     @GetMapping("/{venueId}")
     public ResponseEntity<?> getVenueById(@PathVariable Long venueId){
         // TODO: implement single-venue lookup when needed

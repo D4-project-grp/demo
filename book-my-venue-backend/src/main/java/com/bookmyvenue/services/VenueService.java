@@ -14,14 +14,14 @@ public interface VenueService {
 
     List<VenueCardResponse> getAllVenuesByUser(Long ownerId);
 
-<<<<<<< HEAD:book-my-venue/src/main/java/com/bookmyvenue/services/VenueService.java
+
     List<VenueCardResponse> getAllVenues();
-=======
+
     // ---- Admin methods ----
     List<AdminVenueResponse> getVenuesByStatus(VenueStatus status);
 
     void approveVenue(Long venueId);
 
     void rejectVenue(Long venueId);
->>>>>>> feature/admven:book-my-venue-backend/src/main/java/com/bookmyvenue/services/VenueService.java
+
 }

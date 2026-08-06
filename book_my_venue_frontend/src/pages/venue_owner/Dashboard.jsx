@@ -6,9 +6,6 @@ import "./Dashboard.css";
 export default function Dashboard() {
   const navigate = useNavigate();
 
-<<<<<<< HEAD
-
-=======
   const [venues, setVenues] = useState([]);
 
   // no bookings API yet, so keep these empty for now instead of crashing
@@ -29,10 +26,9 @@ export default function Dashboard() {
   );
 
   const recentBookings = currentBookings.slice(0, 5);
->>>>>>> feature/admven
 
-//   const recentBookings = currentBookings.slice(0, 5);
-//
+
+
   const statusColor = (status) => {
     if (status === "Confirmed") return "badge-confirmed";
     if (status === "Pending") return "badge-pending";

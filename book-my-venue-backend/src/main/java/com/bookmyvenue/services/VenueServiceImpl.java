@@ -121,13 +121,13 @@ public class VenueServiceImpl implements VenueService{
 
     }
 
-<<<<<<< HEAD:book-my-venue/src/main/java/com/bookmyvenue/services/VenueServiceImpl.java
+
     @Override
     public List<VenueCardResponse> getAllVenues() {
-        List<Venue> venues=venueRepository.findAll();
+        List<Venue> venues = venueRepository.findAll();
 
-        List<VenueCardResponse> list=new ArrayList<>();
-        venues.forEach((venue)->{
+        List<VenueCardResponse> list = new ArrayList<>();
+        venues.forEach((venue) -> {
             VenueCardResponse cardResponse = new VenueCardResponse();
             cardResponse.setVenueId(venue.getId());
             cardResponse.setVenueName(venue.getVenueName());
@@ -137,7 +137,7 @@ public class VenueServiceImpl implements VenueService{
             cardResponse.setStatus(venue.getStatus());
             cardResponse.setGuestCapacity(venue.getGuestCapacity());
 
-            String img_url=venue.getImages().get(0).getImgUrl();
+            String img_url = venue.getImages().get(0).getImgUrl();
             if (img_url != null) {
                 img_url = "http://localhost:2003/uploads/" + img_url;
             }
@@ -148,7 +148,7 @@ public class VenueServiceImpl implements VenueService{
 
         });
         return list;
-=======
+    }
     // ---- Admin methods ----
 
     // Admin uses this to see venues by their status - e.g. all PENDING ones waiting for approval,
@@ -216,6 +216,6 @@ public class VenueServiceImpl implements VenueService{
 
         venue.setStatus(VenueStatus.REJECTED);
         venueRepository.save(venue);
->>>>>>> feature/admven:book-my-venue-backend/src/main/java/com/bookmyvenue/services/VenueServiceImpl.java
+
     }
 }
