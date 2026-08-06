@@ -1,11 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-// import { useApp } from "../../context/AppContext";
+import { getAllVenues } from "../../api/venueService";
 import "./Dashboard.css";
 
 export default function Dashboard() {
-  // const { currentBookings, oldBookings } = useApp();
   const navigate = useNavigate();
+
+  const [venues, setVenues] = useState([]);
+
+  // no bookings API yet, so keep these empty for now instead of crashing
+  const currentBookings = [];
+  const oldBookings = [];
+
+  useEffect(() => {
+    const loadVenues = async () => {
+      const response = await getAllVenues();
+      setVenues(response.data);
+    };
+    loadVenues();
+  }, []);
 
   const totalRevenue = [...currentBookings, ...oldBookings].reduce(
     (sum, b) => sum + b.cost,
@@ -22,9 +35,9 @@ export default function Dashboard() {
   };
 
   return (
-   
+
     <div className="dashboard">
-     
+
       <div className="page-header">
         <h1 className="page-title">Dashboard</h1>
         <p className="page-subtitle">Welcome back! Here's an overview of your venue business.</p>

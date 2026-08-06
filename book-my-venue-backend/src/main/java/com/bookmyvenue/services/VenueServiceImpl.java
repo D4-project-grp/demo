@@ -1,12 +1,12 @@
 package com.bookmyvenue.services;
 
+import com.bookmyvenue.custom_exception.ResourceNotFoundException;
 import com.bookmyvenue.dto.*;
 import com.bookmyvenue.entities.*;
 import com.bookmyvenue.enums.UploadFolder;
 import com.bookmyvenue.repository.SubscriptionRepository;
 import com.bookmyvenue.repository.UserRepository;
 import com.bookmyvenue.repository.VenueRepository;
-import com.sun.tools.jconsole.JConsoleContext;
 import jakarta.transaction.Transactional;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -29,14 +29,14 @@ import java.util.*;
 @RequiredArgsConstructor
 
 public class VenueServiceImpl implements VenueService{
-    final private UserRepository userRepository;
-    final private VenueRepository venueRepository;
-    final private VenueSubscriptionService venueSubscriptionService;
-    final private  FileStorageService fileStorageService;
-    final private ModelMapper mapper;
-    final private VenueImageService venueImageService;
-    final private AmenityService amenityService;
-    final private SubscriptionRepository subscriptionRepository;
+    private final UserRepository userRepository;
+    private final VenueRepository venueRepository;
+    private final VenueSubscriptionService venueSubscriptionService;
+    private final FileStorageService fileStorageService;
+    private final ModelMapper mapper;
+    private final VenueImageService venueImageService;
+    private final AmenityService amenityService;
+    private final SubscriptionRepository subscriptionRepository;
     @Override
     public Long addVenue(AddVenueRequest addVenueRequest, List<MultipartFile> venueImages) {
 
@@ -119,5 +119,74 @@ public class VenueServiceImpl implements VenueService{
           });
           return list;
 
+    }
+
+    // ---- Admin methods ----
+
+    // Admin uses this to see venues by their status - e.g. all PENDING ones waiting for approval,
+    // or all APPROVED ones already live on the site.
+    @Override
+    public List<AdminVenueResponse> getVenuesByStatus(VenueStatus status) {
+
+        // Step 1: get all venues that match the given status from the database
+        List<Venue> venues = venueRepository.findByStatus(status);
+
+        // Step 2: we can't just return the Venue entities directly to the frontend,
+        // so we convert (map) each Venue into a simpler AdminVenueResponse object
+        List<AdminVenueResponse> result = new ArrayList<>();
+
+        for (Venue venue : venues) {
+            AdminVenueResponse response = new AdminVenueResponse();
+
+            response.setId(venue.getId());
+            response.setName(venue.getVenueName());
+            response.setCity(venue.getAddress().getCity());
+            response.setCapacity(venue.getGuestCapacity());
+            response.setPricePerDay(venue.getPrice());
+            response.setDescription(venue.getDescription());
+            response.setStatus(venue.getStatus());
+
+            // owner is a User object, we only want to show their name
+            String ownerName = venue.getOwner().getFirstName() + " " + venue.getOwner().getLastName();
+            response.setOwner(ownerName);
+
+            // amenities is a Set<Amenity>, but we only want the amenity names as plain text
+            List<String> amenityNames = new ArrayList<>();
+            for (Amenity amenity : venue.getAmenities()) {
+                amenityNames.add(amenity.getAmenityName());
+            }
+            response.setAmenities(amenityNames);
+
+            // pick the first image if one exists, otherwise leave it null
+            String imageUrl = null;
+            if (!venue.getImages().isEmpty()) {
+                imageUrl = "http://localhost:2003/uploads/" + venue.getImages().get(0).getImgUrl();
+            }
+            response.setImg_url(imageUrl);
+
+            result.add(response);
+        }
+
+        return result;
+    }
+
+    // Admin clicks "Approve" -> find that venue by id, change its status, save it back
+    @Override
+    public void approveVenue(Long venueId) {
+        Venue venue = venueRepository.findById(venueId)
+                .orElseThrow(() -> new ResourceNotFoundException("Venue not found with id " + venueId));
+
+        venue.setStatus(VenueStatus.APPROVED);
+        venueRepository.save(venue);
+    }
+
+    // same idea as approveVenue, just sets status to REJECTED instead
+    @Override
+    public void rejectVenue(Long venueId) {
+        Venue venue = venueRepository.findById(venueId)
+                .orElseThrow(() -> new ResourceNotFoundException("Venue not found with id " + venueId));
+
+        venue.setStatus(VenueStatus.REJECTED);
+        venueRepository.save(venue);
     }
 }

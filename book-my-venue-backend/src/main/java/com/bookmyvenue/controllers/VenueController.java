@@ -8,8 +8,6 @@ import com.bookmyvenue.dto.FoodCategoryDto;
 import com.bookmyvenue.dto.VenueCardResponse;
 import com.bookmyvenue.services.MenuService;
 import com.bookmyvenue.services.VenueService;
-import com.sun.tools.jconsole.JConsoleContext;
-import com.sun.tools.jconsole.JConsolePlugin;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,8 +24,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 @RequestMapping("/api/venues")
 public class VenueController {
-    final private VenueService venueService;
-    final private MenuService menuService;
+    private final VenueService venueService;
+    private final MenuService menuService;
     @PostMapping("/listing")
     public ResponseEntity<?> addVenue(
             @RequestPart("data")  AddVenueRequest request, @RequestPart(value = "venueImages") List<MultipartFile> venueImages, @RequestParam Map<String, MultipartFile> allParts
@@ -46,6 +44,7 @@ public class VenueController {
     }
     @GetMapping("/{venueId}")
     public ResponseEntity<?> getVenueById(@PathVariable Long venueId){
-
+        // TODO: implement single-venue lookup when needed
+        return ResponseEntity.ok("Not implemented yet");
     }
 }
