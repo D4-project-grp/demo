@@ -48,11 +48,13 @@ public class SecurityConfiguration {
 		http.authorizeHttpRequests(request ->
 		//public end points - swagger , sign in , sign up
 
-						request.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/auth/signin", "/api/auth/signup","/api/venues/**","/uploads/**","/api/subscription/**","/api/amenity/**").permitAll()
+						request.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/auth/signin", "/api/auth/signup","/api/venues","/uploads/**","/api/subscription/**","/api/amenity/**").permitAll()
 //                         only customer should be able to book venue
 
 								. requestMatchers("/api/auth/**").hasAnyAuthority("CUSTOMER","VENUE_OWNER","ADMIN")
 								. requestMatchers(HttpMethod.GET, "/api/auth/**").hasAnyAuthority("CUSTOMER","VENUE_OWNER","ADMIN")
+								. requestMatchers(HttpMethod.POST,"/api/venues").hasAnyAuthority( "VENUE_OWNER")
+								. requestMatchers(HttpMethod.GET,"/api/venues/my-listing").hasAnyAuthority( "VENUE_OWNER")
 								// Only Admin should be able to approve or reject venue listed by venue owner status - COMPLETE
 //                        .requestMatchers(HttpMethod.PATCH, "/{appId}").hasRole("ADMIN")
 								// Only venue owner should be able to do the listing of venues

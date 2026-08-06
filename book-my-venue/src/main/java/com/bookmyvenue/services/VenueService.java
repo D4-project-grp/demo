@@ -11,4 +11,6 @@ public interface VenueService {
      Long addVenue(AddVenueRequest addVenueRequest, List<MultipartFile> images);
 
     List<VenueCardResponse> getAllVenuesByUser(Long ownerId);
+
+    List<VenueCardResponse> getAllVenues();
 }

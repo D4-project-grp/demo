@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import {getAllVenues } from "../../api/venueService"
+import {getAllVenuesByOwnerId } from "../../api/venueService"
 import "./MyListings.css";
 
 export default function MyListings() {
@@ -11,7 +11,7 @@ export default function MyListings() {
   useEffect(()=>{
     
     async function fetchData() {
-      const response=await getAllVenues();
+      const response=await getAllVenuesByOwnerId();
       
      
       setVenues(  response.data)

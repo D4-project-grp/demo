@@ -120,4 +120,32 @@ public class VenueServiceImpl implements VenueService{
           return list;
 
     }
+
+    @Override
+    public List<VenueCardResponse> getAllVenues() {
+        List<Venue> venues=venueRepository.findAll();
+
+        List<VenueCardResponse> list=new ArrayList<>();
+        venues.forEach((venue)->{
+            VenueCardResponse cardResponse = new VenueCardResponse();
+            cardResponse.setVenueId(venue.getId());
+            cardResponse.setVenueName(venue.getVenueName());
+            cardResponse.setCity(venue.getAddress().getCity());
+            cardResponse.setLocality(venue.getAddress().getLocality());
+            cardResponse.setPrice(venue.getPrice());
+            cardResponse.setStatus(venue.getStatus());
+            cardResponse.setGuestCapacity(venue.getGuestCapacity());
+
+            String img_url=venue.getImages().get(0).getImgUrl();
+            if (img_url != null) {
+                img_url = "http://localhost:2003/uploads/" + img_url;
+            }
+            cardResponse.setImg_url(img_url);
+
+            list.add(cardResponse);
+
+
+        });
+        return list;
+    }
 }

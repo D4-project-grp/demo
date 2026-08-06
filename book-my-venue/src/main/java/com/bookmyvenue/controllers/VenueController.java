@@ -28,7 +28,7 @@ import java.util.Set;
 public class VenueController {
     final private VenueService venueService;
     final private MenuService menuService;
-    @PostMapping("/listing")
+    @PostMapping("")
     public ResponseEntity<?> addVenue(
             @RequestPart("data")  AddVenueRequest request, @RequestPart(value = "venueImages") List<MultipartFile> venueImages, @RequestParam Map<String, MultipartFile> allParts
     ) {
@@ -38,14 +38,16 @@ public class VenueController {
         menuService.addMenu(venueId,request.getFoodMenu(),  allParts);
         return ResponseEntity.ok("Uploaded");
     }
-    @GetMapping("")
-    public ResponseEntity<?> getAllVenues(){
+    @GetMapping("/my-listing")
+    public ResponseEntity<?> getAllVenuesByOwnerId(){
         Long ownerId= (Long) PrincipleUtils.getPrincipal();
         List<VenueCardResponse> venueCardResponse=venueService.getAllVenuesByUser(ownerId);
         return ResponseEntity.ok(new ApiResponse<List<VenueCardResponse>>(true,null, venueCardResponse, LocalDateTime.now()));
     }
-    @GetMapping("/{venueId}")
-    public ResponseEntity<?> getVenueById(@PathVariable Long venueId){
-
+    @GetMapping("")
+    public ResponseEntity<?> getAllVenues(){
+        List<VenueCardResponse> venueCardResponse=venueService.getAllVenues();
+        return ResponseEntity.ok(new ApiResponse<List<VenueCardResponse>>(true,null, venueCardResponse, LocalDateTime.now()));
     }
+
 }
