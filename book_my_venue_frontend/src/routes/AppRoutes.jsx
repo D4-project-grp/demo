@@ -90,9 +90,9 @@ const AppRoutes = () => {
                     </ProtectedRoute>
                 }
             >
-                {/* <Route index element={<Dashboard />} /> */}
+                <Route index element={<Dashboard />} />
                 <Route path="add-venue" element={<AddVenue />} />
-                {/* <Route path="my-listings" element={<MyListings />} /> */}
+                <Route path="my-listings" element={<MyListings />} />
                 {/* <Route path="bookings/current-bookings" element={<CurrentBookings />} /> */}
                 {/* <Route path="bookings/old-bookings" element={<OldBookings />} /> */}
                 <Route path="edit-profile" element={<EditProfile />} />

@@ -1,13 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useApp } from "../../context/AppContext";
+import {getAllVenues } from "../../api/venueService"
 import "./MyListings.css";
 
 export default function MyListings() {
-  const { venues, deleteVenue } = useApp();
+  // const { venues, deleteVenue } = useApp();
+  const [venues, setVenues] = useState([]);
   const navigate = useNavigate();
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  useEffect(()=>{
+    
+    async function fetchData() {
+      const response=await getAllVenues();
+      
+     
+      setVenues(  response.data)
+      
 
+    }
+    fetchData()
+    
+  },[])
   const handleDelete = (id) => {
     deleteVenue(id);
     setDeleteConfirm(null);
@@ -34,7 +47,7 @@ export default function MyListings() {
         </div>
         <button
           className="btn-add-venue"
-          onClick={() => navigate("/add-venue")}
+          onClick={() => navigate("/owner/add-venue")}
         >
           + Add New Venue
         </button>
@@ -47,20 +60,20 @@ export default function MyListings() {
           <p>Start by adding your first venue to attract customers.</p>
           <button
             className="btn-add-venue"
-            onClick={() => navigate("/add-venue")}
+            onClick={() => navigate("/owner/add-venue")}
           >
             + Add Your First Venue
           </button>
         </div>
       ) : (
         <div className="listings-grid">
-          {venues.map((venue) => {
+          {venues.map((venue,key) => {
             const { label, cls } = statusBadge(venue.status);
             return (
-              <div key={venue.id} className="venue-card">
+              <div key={venue.venueId} className="venue-card">
                 <div className="venue-card-image">
-                  {venue.images && venue.images.length > 0 ? (
-                    <img src={venue.images[0]} alt={venue.name} />
+                  {venue.img_url ? (
+                    <img src={venue.img_url} alt={venue.name} />
                   ) : (
                     <div className="venue-image-placeholder">
                       <span>🏛️</span>
@@ -76,7 +89,7 @@ export default function MyListings() {
                   <div className="venue-meta">
                     <div className="venue-meta-item">
                       <span className="meta-icon">👥</span>
-                      <span>Capacity: {venue.guests} guests</span>
+                      <span>Capacity: {venue.guestCapacity} guests</span>
                     </div>
                     <div className="venue-meta-item">
                       <span className="meta-icon">💰</span>
@@ -86,29 +99,15 @@ export default function MyListings() {
                       <span className="meta-icon">📍</span>
                       <span>{venue.city}</span>
                     </div>
-                    <div className="venue-meta-item">
-                      <span className="meta-icon">📦</span>
-                      <span>{packageLabel(venue.package)}</span>
-                    </div>
+                     
                   </div>
 
-                  {venue.amenities && venue.amenities.length > 0 && (
-                    <div className="venue-amenities">
-                      {venue.amenities.slice(0, 4).map((a) => (
-                        <span key={a} className="amenity-tag">{a}</span>
-                      ))}
-                      {venue.amenities.length > 4 && (
-                        <span className="amenity-tag amenity-more">
-                          +{venue.amenities.length - 4} more
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  
 
                   <div className="venue-card-actions">
                     <button
                       className="btn-edit"
-                      onClick={() => navigate(`/edit-venue/${venue.id}`)}
+                      onClick={() => navigate(`/edit-venue/${venue.venudId}`)}
                     >
                       ✏️ Edit
                     </button>

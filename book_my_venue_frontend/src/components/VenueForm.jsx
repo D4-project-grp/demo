@@ -5,7 +5,7 @@ import "./VenueForm.css";
 import { getAllAmenities,getSubscriptionPackages,addVenue } from "../api/venueService";
 // Base URL for your Spring Boot backend — adjust to match your setup
 // (e.g. via .env: VITE_API_BASE_URL=http://localhost:8080)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:2003";
+ 
 
  
 const DEFAULT_FOOD_CATEGORIES = [
@@ -289,7 +289,7 @@ console.log(JSON.stringify(payload.foodMenu, null, 2));
     try {
       const fd = buildVenueFormData();
       // const res = await axios.post(`${API_BASE_URL}/api/venue/listing`, fd);
-      const res=await addVenue();
+      const res=await addVenue(fd);
       // Don't set a Content-Type header manually — axios/the browser sets
       // the correct "multipart/form-data; boundary=..." automatically when
       // the body is a FormData instance. Setting it yourself without a
@@ -298,7 +298,7 @@ console.log(JSON.stringify(payload.foodMenu, null, 2));
       if (onSubmit) {
         onSubmit(res.data.data);
       } else {
-        navigate("/my-listings");
+        navigate("/owner/my-listings");
       }
     } catch (err) {
       setSubmitError(

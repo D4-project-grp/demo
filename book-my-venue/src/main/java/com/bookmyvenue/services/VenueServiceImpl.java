@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import utils.PrincipleUtils;
 
 import java.io.IOException;
+import java.sql.ClientInfoStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -89,5 +90,34 @@ public class VenueServiceImpl implements VenueService{
 
 //        return new ApiResponse<Integer>(true,"hi",12, LocalDateTime.now());
           return venue.getId();
+    }
+
+    @Override
+    public List<VenueCardResponse> getAllVenuesByUser(Long ownerId) {
+          List<Venue> venues=venueRepository.findByOwnerId(ownerId);
+
+          List<VenueCardResponse> list=new ArrayList<>();
+          venues.forEach((venue)->{
+              VenueCardResponse cardResponse = new VenueCardResponse();
+              cardResponse.setVenueId(venue.getId());
+              cardResponse.setVenueName(venue.getVenueName());
+              cardResponse.setCity(venue.getAddress().getCity());
+              cardResponse.setLocality(venue.getAddress().getLocality());
+              cardResponse.setPrice(venue.getPrice());
+              cardResponse.setStatus(venue.getStatus());
+              cardResponse.setGuestCapacity(venue.getGuestCapacity());
+
+              String img_url=venue.getImages().get(0).getImgUrl();
+              if (img_url != null) {
+                  img_url = "http://localhost:2003/uploads/" + img_url;
+              }
+              cardResponse.setImg_url(img_url);
+
+               list.add(cardResponse);
+
+
+          });
+          return list;
+
     }
 }

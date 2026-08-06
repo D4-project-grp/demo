@@ -3,13 +3,27 @@ import { db } from "../../data/mockData";
 import VenueCard from "../../components/customer/VenueCard";
 import "./Home.css";
 import { useAuth } from "../../context/AuthContext";
-
- 
+import { getAllVenues } from "../../api/venueService";
+import { useState,useEffect } from "react";
 
 export default function Home() {
   
   const navigate = useNavigate();
-  const venues = db.getVenues();
+  // const venues = db.getVenues();
+  const [venues,setVenues]=useState([]);
+  useEffect(()=>{
+      
+      async function fetchData() {
+        const response=await getAllVenues();
+        
+       
+        setVenues(  response.data)
+        
+  
+      }
+      fetchData()
+      
+  },[])
   const popular = [...venues].sort((a, b) => b.popularity - a.popularity).slice(0, 4);
   const { user, logout } = useAuth();
 
@@ -37,7 +51,7 @@ export default function Home() {
           </div>
           <div className="venue-grid">
             {popular.map((v) => (
-              <VenueCard key={v.venue_id} venue={v} />
+              <VenueCard key={v.venueId} venue={v} />
             ))}
           </div>
         </section>
@@ -50,7 +64,7 @@ export default function Home() {
         </div>
         <div className="venue-grid">
           {venues.map((v) => (
-            <VenueCard key={v.venue_id} venue={v} />
+            <VenueCard key={v.venueId} venue={v} />
           ))}
         </div>
       </section>

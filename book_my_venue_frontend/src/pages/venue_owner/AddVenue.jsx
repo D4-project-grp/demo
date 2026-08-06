@@ -12,7 +12,7 @@ export default function AddVenue() {
   const handleSubmit = (data) => {
 
     setSubmitted(true);
-    setTimeout(() => navigate("/my-listings"), 2000);
+    setTimeout(() => navigate("/owner/my-listings"), 1000);
   };
 
   if (submitted) {
