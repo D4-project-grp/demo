@@ -19,6 +19,15 @@ export const getAllVenuesByOwnerId=async()=>{
 }
 export const getAllVenues=async()=>{
     const response= await api.get(`/venues`);
-    console.log(response)
+     
+    return response.data;
+}
+export const getVenueDetailsByVenueId=async(venueId)=>{
+    const response= await api.get(`/venues/${venueId}`);
+   
+    return response.data;
+}
+export const getAllMenusByVenueId=async(venueId)=>{
+    const response= await api.get(`/menus/${venueId}`);
     return response.data;
 }

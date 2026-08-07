@@ -15,7 +15,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @Setter
 @Getter
- 
+@ToString(exclude= {"bookedFoodItems","menu"})
 @Entity
 @Table(name="food_items")
 @AttributeOverride(name="id",column=@Column(name="fooditem_id"))

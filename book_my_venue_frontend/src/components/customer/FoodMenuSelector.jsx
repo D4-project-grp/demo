@@ -1,11 +1,19 @@
-import { useState, useMemo } from "react";
-import { MENU_TYPES } from "../../data/mockData";
+import { useState, useEffect, useMemo } from "react";
 import FoodItemGallery from "./FoodItemGallery";
 import "./FoodMenuSelector.css";
 
 export default function FoodMenuSelector({ groupedMenu, selectedIds, onToggle, guests }) {
-  const [activeTab, setActiveTab] = useState(MENU_TYPES[0].key);
+  const [activeTab, setActiveTab] = useState(groupedMenu[0]?.key ?? null);
   const [dietFilter, setDietFilter] = useState("ALL"); // ALL | VEG | NON_VEG
+
+  // groupedMenu loads asynchronously (after the API call resolves), so the
+  // initial useState(groupedMenu[0]?.key) above often runs before there's
+  // any data. Once groupedMenu arrives, make sure a valid tab is selected.
+  useEffect(() => {
+    if (groupedMenu.length > 0 && !groupedMenu.some((g) => g.key === activeTab)) {
+      setActiveTab(groupedMenu[0].key);
+    }
+  }, [groupedMenu, activeTab]);
 
   const activeGroup = groupedMenu.find((g) => g.key === activeTab);
 
@@ -18,6 +26,10 @@ export default function FoodMenuSelector({ groupedMenu, selectedIds, onToggle, g
   const selectedCountInTab = activeGroup
     ? activeGroup.items.filter((f) => selectedIds.includes(f.food_id)).length
     : 0;
+
+  if (groupedMenu.length === 0) {
+    return <p className="fms-empty">No menu items available for this venue yet.</p>;
+  }
 
   return (
     <div className="fms">
@@ -68,9 +80,9 @@ export default function FoodMenuSelector({ groupedMenu, selectedIds, onToggle, g
                     <span className={`veg-dot ${f.food_type === "VEG" ? "veg" : "nonveg"}`} />
                     {f.food_name}
                   </div>
-                  <p className="fms-card-desc">{f.description}</p>
+                  <p className="fms-card-desc">{f.description}</p> 
+                  <p className=".fms-card-price"> ₹{f.price}</p>
                   <div className="fms-card-footer">
-                     
                     <button
                       type="button"
                       className={`fms-select-btn ${isSelected ? "selected" : ""}`}

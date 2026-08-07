@@ -4,6 +4,7 @@ import com.bookmyvenue.dto.AddVenueRequest;
 import com.bookmyvenue.dto.AdminVenueResponse;
 import com.bookmyvenue.dto.ApiResponse;
 import com.bookmyvenue.dto.VenueCardResponse;
+import com.bookmyvenue.dto.VenueCustomerResponse;
 import com.bookmyvenue.entities.VenueStatus;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,5 +24,7 @@ public interface VenueService {
     void approveVenue(Long venueId);
 
     void rejectVenue(Long venueId);
+
+    VenueCustomerResponse getVenueById(Long venueId);
 
 }

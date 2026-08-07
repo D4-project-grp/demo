@@ -218,4 +218,16 @@ public class VenueServiceImpl implements VenueService{
         venueRepository.save(venue);
 
     }
+
+	@Override
+	public  VenueCustomerResponse  getVenueById(Long venueId) {
+		Venue  venue=venueRepository.findById(venueId).get();
+		VenueCustomerResponse venueResponse=mapper.map(venue, VenueCustomerResponse.class);
+		List<String> amenities=venue.getAmenities().stream().map((amenity)->amenity.getAmenityName()).toList();
+        venueResponse.setAmenities(amenities);
+        List<String> venue_images=venueImageService.getAllImagesByVenueId(venueId);
+        venueResponse.setVenue_images(venue_images);
+		 
+		return venueResponse;
+	}
 }

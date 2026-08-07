@@ -1,14 +1,26 @@
 package com.bookmyvenue.dto;
-
 import com.bookmyvenue.entities.Amenity;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-public class VenueResponse {
 
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+public class VenueCustomerResponse {
+    Long venueId;
+    
     String venueName;
 
     String description;
@@ -21,11 +33,10 @@ public class VenueResponse {
 
     Integer guestCapacity;
 
-    Long packageId;
+    
 
-    List<Amenity> amenities;
+    List<String> amenities;
 
-
-
-    List<FoodCategoryDto> foodMenu;
+    List<String> venue_images;
+ 
 }

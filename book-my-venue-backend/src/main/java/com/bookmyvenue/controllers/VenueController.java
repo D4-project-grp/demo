@@ -6,6 +6,7 @@ import com.bookmyvenue.dto.AddVenueRequest;
 import com.bookmyvenue.dto.ApiResponse;
 import com.bookmyvenue.dto.FoodCategoryDto;
 import com.bookmyvenue.dto.VenueCardResponse;
+import com.bookmyvenue.dto.VenueCustomerResponse;
 import com.bookmyvenue.services.MenuService;
 import com.bookmyvenue.services.VenueService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
+import com.bookmyvenue.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/venues")
@@ -55,7 +56,8 @@ public class VenueController {
     @GetMapping("/{venueId}")
     public ResponseEntity<?> getVenueById(@PathVariable Long venueId){
         // TODO: implement single-venue lookup when needed
-        return ResponseEntity.ok("Not implemented yet");
+    	 VenueCustomerResponse  resp=venueService.getVenueById(venueId);
+        return ResponseEntity.ok().body(new ApiResponse<VenueCustomerResponse>(true,null, resp,LocalDateTime.now()));
 
     }
 

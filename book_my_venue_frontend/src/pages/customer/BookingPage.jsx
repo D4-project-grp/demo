@@ -1,20 +1,29 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
-import { db } from "../../data/mockData";
- 
+import toast from "react-hot-toast";
+
 import FoodMenuSelector from "../../components/customer/FoodMenuSelector";
+import { getVenueDetailsByVenueId, getAllMenusByVenueId } from "../../api/venueService";
 import "../customer/BookingPage.css";
 
 const EVENT_TYPES = ["Wedding", "Birthday", "Engagement", "Corporate", "Anniversary", "Baby Shower", "Other"];
 const STEPS = ["Event Details", "Select Food Menu", "Review & Confirm"];
 
+// "MAIN_COURSE_NON_VEGETARIAN" -> "Main Course Non Vegetarian"
+const formatMenuTypeLabel = (menuType) =>
+  menuType
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
 export default function BookingPage() {
-  const { id } = useParams();
+  const { venueId } = useParams();
   const navigate = useNavigate();
-  // const currentUser  =  
-  const venue = db.getVenue(id);
-  const groupedMenu = venue ? db.getFoodItemsGroupedByMenuType(venue.venue_id) : [];
-  const allFoodItems = venue ? db.getFoodItemsForVenue(venue.venue_id) : [];
+
+  const [venue, setVenue] = useState(null);
+  const [menu, setMenu] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [step, setStep] = useState(0);
   const [eventType, setEventType] = useState("Wedding");
@@ -24,6 +33,48 @@ export default function BookingPage() {
   const [selectedFood, setSelectedFood] = useState([]);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const venueResponse = await getVenueDetailsByVenueId(venueId);
+        const menuResponse = await getAllMenusByVenueId(venueId);
+        setVenue(venueResponse.data);
+        setMenu(menuResponse.data);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [venueId]);
+
+  // API returns menu grouped by menuType, each item has no id and a single
+  // imgUrl string (not an images array). Normalize both here, once, so every
+  // child component (FoodMenuSelector, FoodItemGallery, the review list)
+  // can rely on a consistent shape: food_id, food_name, food_type, images[].
+  const groupedMenu = useMemo(() => {
+    if (!menu) return [];
+    return menu
+      .filter((group) => group.items.length > 0)
+      .map((group) => ({
+        key: group.menuType,
+        label: formatMenuTypeLabel(group.menuType),
+        items: group.items.map((item, idx) => ({
+          food_id: `${group.menuType}_${idx}`,
+          menu_type: group.menuType,
+          food_name: item.foodName,
+          food_type: item.foodType,
+          price: item.price,
+          description: item.description,
+          images: item.imgUrl ? [item.imgUrl] : [],
+        })),
+      }));
+  }, [menu]);
+
+  const allFoodItems = useMemo(
+    () => groupedMenu.flatMap((group) => group.items),
+    [groupedMenu]
+  );
+
   const guestCount = Number(guests || 0);
 
   const selectedFoodDetails = useMemo(
@@ -32,6 +83,14 @@ export default function BookingPage() {
   );
   const foodCost = selectedFoodDetails.reduce((sum, f) => sum + f.price * (guestCount || 1), 0);
   const totalCost = (venue && venue.price ? venue.price : 0) + foodCost;
+
+  if (loading) {
+    return (
+      <div className="empty-state">
+        <h3>Loading venue...</h3>
+      </div>
+    );
+  }
 
   if (!venue) {
     return (
@@ -43,7 +102,7 @@ export default function BookingPage() {
 
   const toggleFood = (foodId) => {
     setSelectedFood((prev) =>
-      prev.includes(foodId) ? prev.filter((id) => id !== foodId) : [...prev, foodId]
+      prev.includes(foodId) ? prev.filter((fid) => fid !== foodId) : [...prev, foodId]
     );
   };
 
@@ -51,7 +110,7 @@ export default function BookingPage() {
     if (!startDate || !endDate) return "Please select both start and end date.";
     if (new Date(endDate) < new Date(startDate)) return "End date cannot be before start date.";
     if (!guests || guestCount < 1) return "Please enter a valid number of guests.";
-    if (guestCount > venue.guest_capacity) return "This venue supports a maximum of " + venue.guest_capacity + " guests.";
+    if (guestCount > venue.guestCapacity) return "This venue supports a maximum of " + venue.guestCapacity + " guests.";
     return "";
   };
 
@@ -60,6 +119,7 @@ export default function BookingPage() {
     if (step === 0) {
       const err = validateStep1();
       if (err) {
+        toast.error(err);
         setError(err);
         return;
       }
@@ -77,7 +137,7 @@ export default function BookingPage() {
   const handleConfirm = () => {
     // const booking = db.createBooking({
     //   user_id: currentUser.user_id,
-    //   venue_id: venue.venue_id,
+    //   venue_id: venue.venueId,
     //   event_type: eventType,
     //   start_date: startDate,
     //   end_date: endDate,
@@ -90,7 +150,7 @@ export default function BookingPage() {
 
   return (
     <div className="container booking-page">
-      <h1>Book {venue.venue_name}</h1>
+      <h1>Book {venue.venueName}</h1>
       <p className="booking-subtitle">Fill in your event details, choose your food menu, then confirm.</p>
 
       <div className="booking-stepper">
@@ -126,14 +186,13 @@ export default function BookingPage() {
                 </div>
               </div>
 
-              <label>Number of guests (max {venue.guest_capacity})</label>
-              <input type="number" min="1" max={venue.guest_capacity} value={guests} onChange={(e) => setGuests(e.target.value)} required />
+              <label>Number of guests (max {venue.guestCapacity})</label>
+              <input type="number" min="1" max={venue.guestCapacity} value={guests} onChange={(e) => setGuests(e.target.value)} required />
             </div>
           )}
 
           {step === 1 && (
             <div>
-              
               <FoodMenuSelector
                 groupedMenu={groupedMenu}
                 selectedIds={selectedFood}
@@ -165,7 +224,7 @@ export default function BookingPage() {
                           <span className={"veg-dot " + (f.food_type === "VEG" ? "veg" : "nonveg")} />
                           {f.food_name}
                         </div>
-                        <div className="food-type">{f.menu_type.replace(/_/g, " ")}</div>
+                        <div className="food-type">{formatMenuTypeLabel(f.menu_type)}</div>
                       </div>
                       <div className="review-food-price">₹{(f.price * guestCount).toLocaleString("en-IN")}</div>
                     </div>
@@ -188,9 +247,9 @@ export default function BookingPage() {
         </div>
 
         <aside className="booking-summary">
-          <img src={venue.images[0]} alt={venue.venue_name} className="summary-img" />
-          <h3>{venue.venue_name}</h3>
-          <p className="summary-loc">{venue.locality}, {venue.city}</p>
+          <img src={venue.venue_images?.[0]} alt={venue.venueName} className="summary-img" />
+          <h3>{venue.venueName}</h3>
+          <p className="summary-loc">{venue.address.locality}, {venue.address.city}</p>
           <div className="summary-row">
             <span>Venue price</span>
             <span>₹{venue.price.toLocaleString("en-IN")}</span>

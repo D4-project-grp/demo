@@ -49,9 +49,9 @@ public class SecurityConfiguration {
 		http.authorizeHttpRequests(request ->
 		//public end points - swagger , sign in , sign up
 
-						request.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/auth/signin", "/api/auth/signup","/api/venues","/uploads/**","/api/subscription/**","/api/amenity/**").permitAll()
+						request.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/auth/signin", "/api/auth/signup","/api/venues","/api/venues/{venueId}","/uploads/**","/api/subscription/**","/api/amenity/**").permitAll()
 //                         only customer should be able to book venue
-
+                                .requestMatchers(HttpMethod.GET,"/api/menus/**").permitAll()
 								. requestMatchers("/api/auth/**").hasAnyAuthority("CUSTOMER","VENUE_OWNER","ADMIN")
 								. requestMatchers(HttpMethod.GET, "/api/auth/**").hasAnyAuthority("CUSTOMER","VENUE_OWNER","ADMIN")
 								. requestMatchers(HttpMethod.POST,"/api/venues").hasAnyAuthority( "VENUE_OWNER")
