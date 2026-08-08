@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import toast from "react-hot-toast";
-
+import { createBooking, checkVenueAvailability } from "../../api/bookingService";
 import FoodMenuSelector from "../../components/customer/FoodMenuSelector";
 import { getVenueDetailsByVenueId, getAllMenusByVenueId } from "../../api/venueService";
 import "../customer/BookingPage.css";
@@ -33,13 +33,19 @@ export default function BookingPage() {
   const [selectedFood, setSelectedFood] = useState([]);
   const [error, setError] = useState("");
 
+  // null = not checked yet, true = available, false = unavailable
+  const [availability, setAvailability] = useState(null);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+
   useEffect(() => {
     async function fetchData() {
       try {
         const venueResponse = await getVenueDetailsByVenueId(venueId);
         const menuResponse = await getAllMenusByVenueId(venueId);
         setVenue(venueResponse.data);
+      
         setMenu(menuResponse.data);
+      
       } finally {
         setLoading(false);
       }
@@ -47,7 +53,7 @@ export default function BookingPage() {
     fetchData();
   }, [venueId]);
 
-  // API returns menu grouped by menuType, each item has no id and a single
+  // API returns menu grouped by menuType and a single
   // imgUrl string (not an images array). Normalize both here, once, so every
   // child component (FoodMenuSelector, FoodItemGallery, the review list)
   // can rely on a consistent shape: food_id, food_name, food_type, images[].
@@ -58,8 +64,8 @@ export default function BookingPage() {
       .map((group) => ({
         key: group.menuType,
         label: formatMenuTypeLabel(group.menuType),
-        items: group.items.map((item, idx) => ({
-          food_id: `${group.menuType}_${idx}`,
+        items: group.items.map((item) => ({
+          food_id: item.id,
           menu_type: group.menuType,
           food_name: item.foodName,
           food_type: item.foodType,
@@ -74,6 +80,39 @@ export default function BookingPage() {
     () => groupedMenu.flatMap((group) => group.items),
     [groupedMenu]
   );
+
+  // Re-check availability whenever the selected date range changes.
+  // Debounced so we don't fire a request on every single keystroke/date-picker tick.
+  useEffect(() => {
+    if (!startDate || !endDate || new Date(endDate) < new Date(startDate)) {
+      setAvailability(null);
+      setCheckingAvailability(false);
+      return;
+    }
+ 
+    let cancelled = false;
+    setCheckingAvailability(true);
+    setAvailability(null);
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await checkVenueAvailability(venueId, startDate, endDate);
+        if (!cancelled) setAvailability(res.data.data.available);
+      } catch (err) {
+        if (!cancelled) {
+          setAvailability(null);
+          toast.error("Could not check availability. Please try again.");
+        }
+      } finally {
+        if (!cancelled) setCheckingAvailability(false);
+      }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [venueId, startDate, endDate]);
 
   const guestCount = Number(guests || 0);
 
@@ -111,6 +150,8 @@ export default function BookingPage() {
     if (new Date(endDate) < new Date(startDate)) return "End date cannot be before start date.";
     if (!guests || guestCount < 1) return "Please enter a valid number of guests.";
     if (guestCount > venue.guestCapacity) return "This venue supports a maximum of " + venue.guestCapacity + " guests.";
+    if (checkingAvailability) return "Still checking venue availability, please wait a moment.";
+    if (availability === false) return "This venue is already booked for the selected dates. Please choose different dates.";
     return "";
   };
 
@@ -134,18 +175,30 @@ export default function BookingPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleConfirm = () => {
-    // const booking = db.createBooking({
-    //   user_id: currentUser.user_id,
-    //   venue_id: venue.venueId,
-    //   event_type: eventType,
-    //   start_date: startDate,
-    //   end_date: endDate,
-    //   no_of_guests: guestCount,
-    //   food_items: selectedFood,
-    //   cost: totalCost,
-    // });
-    navigate("/payment/" + 10);
+  const handleConfirm = async() => {
+    const payload = {
+    
+      venue_id: venue.venueId,
+      event_type: eventType.toUpperCase(),                  
+      start_date: startDate,
+      end_date: endDate,
+      no_of_guests: guestCount,
+      food_item_ids: selectedFood, // array of numeric food item ids only
+   
+    };
+    
+    
+    // setSubmitting(true);
+    try {
+      const response= await createBooking(payload);
+      const booking=response.data;
+      navigate(`/booking-confirmation/${booking.bookingId}`, { state: { booking} });
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Could not create booking. Please try again.");
+    } finally {
+      // setSubmitting(false);
+    }
+    // navigate("/payment/" + 10);
   };
 
   return (
@@ -185,6 +238,25 @@ export default function BookingPage() {
                   <input type="date" value={endDate} min={startDate || new Date().toISOString().split("T")[0]} onChange={(e) => setEndDate(e.target.value)} required />
                 </div>
               </div>
+
+              {startDate && endDate && new Date(endDate) >= new Date(startDate) && (
+                <div
+                  className={
+                    "availability-status " +
+                    (checkingAvailability
+                      ? "checking"
+                      : availability === false
+                      ? "unavailable"
+                      : availability === true
+                      ? "available"
+                      : "")
+                  }
+                >
+                  {checkingAvailability && "Checking availability..."}
+                  {!checkingAvailability && availability === false && "⚠ Venue is not available for these dates."}
+                  {!checkingAvailability && availability === true && "✓ Venue is available for these dates."}
+                </div>
+              )}
 
               <label>Number of guests (max {venue.guestCapacity})</label>
               <input type="number" min="1" max={venue.guestCapacity} value={guests} onChange={(e) => setGuests(e.target.value)} required />
@@ -239,7 +311,14 @@ export default function BookingPage() {
               <button type="button" className="btn-primary" onClick={goBack}>Back</button>
             )}
             {step < STEPS.length - 1 ? (
-              <button type="button" className="btn-primary" onClick={goNext}>Continue</button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={goNext}
+                disabled={step === 0 && (checkingAvailability || availability === false)}
+              >
+                Continue
+              </button>
             ) : (
               <button type="button" className="btn-primary" onClick={handleConfirm}>Continue to Payment</button>
             )}

@@ -17,7 +17,8 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FoodItemResponse {
-	 
+	    Long id;
+	    
 	    String foodName;
 	    
 	    FoodType foodType;

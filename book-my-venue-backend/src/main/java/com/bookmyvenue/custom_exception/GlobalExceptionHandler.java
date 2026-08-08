@@ -41,5 +41,10 @@ public class GlobalExceptionHandler {
         String msg="you forgot to upload the images";
         return ResponseEntity.badRequest().body(new ApiResponse<String>(false,msg,null,LocalDateTime.now()));
     }
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handlerIllegalArgumentException(IllegalArgumentException e){
+		return ResponseEntity.badRequest().body(new ApiResponse<String>(false,e.getMessage(),null,LocalDateTime.now()));
+    	
+    }
     
 }

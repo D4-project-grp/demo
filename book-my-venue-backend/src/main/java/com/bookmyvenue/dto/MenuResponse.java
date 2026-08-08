@@ -19,7 +19,7 @@ import lombok.ToString;
 @NoArgsConstructor
 public class MenuResponse {
 	 
-    
+    Long id;
     
     private MenuType menuType;
     

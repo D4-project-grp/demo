@@ -293,3 +293,7 @@
   font-size: 13px;
   color:  rgb(44, 52, 95);
 }
+.availability-status { font-size: 13px; margin: 6px 0 4px; font-weight: 600; }
+.availability-status.checking { color: #64748b; }
+.availability-status.available { color: #059669; }
+.availability-status.unavailable { color: #dc2626; }

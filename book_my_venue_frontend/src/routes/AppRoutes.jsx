@@ -53,6 +53,7 @@ const AppRoutes = () => {
             <Route element={<CustomerLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/venues" element={<SearchResults />} />
+
                 <Route path="/venue/:venueId" element={<VenueDetails />} />
                 <Route path="/booking/:venueId" element={<BookingPage />} />
                 <Route path="/payment/:id" element={<PaymentPage />} />

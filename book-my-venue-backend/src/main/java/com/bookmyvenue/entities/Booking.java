@@ -1,11 +1,13 @@
 package com.bookmyvenue.entities;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.annotations.ManyToAny;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -45,17 +47,17 @@ public class Booking {
 	private EventType eventType = EventType.OTHER;
 	
 	@Column(name = "start_datetime")
-	private LocalDateTime startDatetime;
+	private LocalDate startDate;
 
 	@Column(name = "end_datetime")
-	private LocalDateTime endDatetime;
+	private LocalDate endDate;
 
 	@Column(name = "booked_at")
 	private LocalDateTime bookedAt;
 
 	
 	
-	private Double cost;
+	private BigDecimal cost;
 
 	@Column(name = "no_of_guests")
 	private Integer noOfGuests;
@@ -70,7 +72,7 @@ public class Booking {
 
 	
 
-	@OneToMany(mappedBy = "booking",fetch=FetchType.LAZY)
+	@OneToMany(mappedBy = "booking",fetch=FetchType.LAZY,cascade = CascadeType.ALL)
 	private List<BookedFoodItem> bookedFoodItems;
 
 	@OneToOne(mappedBy = "booking",fetch=FetchType.EAGER)//only review can be associated with single reservation

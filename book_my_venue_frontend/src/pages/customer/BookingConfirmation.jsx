@@ -1,23 +1,13 @@
-import { useParams, useNavigate, Link } from "react-router";
-import { db ,dummyBookings} from "../../data/mockData";
+import { useNavigate, useLocation, Link } from "react-router";
 import "./BookingConfirmation.css";
 
 export default function BookingConfirmation() {
-  const { bookingId } = useParams();
   const navigate = useNavigate();
-  const booking =dummyBookings[0];
+  const location = useLocation();
 
-  // if (!booking) {
-  //   return (
-  //     <div className="empty-state">
-  //       <h3>Booking not found</h3>
-  //     </div>
-  //   );
-  // }
-  const venue = db.getVenue(11);
-  // const foodItems = (booking.food_items || [])
-  //   .map((id) => db.getFoodItem(id))
-  //   .filter(Boolean);
+  // Data is embedded here via navigate(path, { state: { booking } })
+  // right after the create-booking API call succeeds.
+  const booking = location.state?.booking;
 
   return (
     <div className="container confirmation-page">
@@ -27,15 +17,12 @@ export default function BookingConfirmation() {
         <p>Your venue has been successfully booked. A confirmation has been sent to your registered email.</p>
 
         <div className="confirmation-details">
-          <div className="cd-row"><span>Booking ID</span><span>#{booking.booking_id}</span></div>
-          <div className="cd-row"><span>Venue</span><span>{venue?.venue_name}</span></div>
-          <div className="cd-row"><span>Event type</span><span>{booking.event_type}</span></div>
-          <div className="cd-row"><span>Dates</span><span>{booking.start_date} → {booking.end_date}</span></div>
-          <div className="cd-row"><span>Guests</span><span>{booking.no_of_guests}</span></div>
-          {/* {foodItems.length > 0 && (
-            <div className="cd-row"><span>Food items</span><span>{foodItems.map((f) => f.food_name).join(", ")}</span></div>
-          )} */}
-          <div className="cd-row total"><span>Amount paid</span><span>₹{ 11000}</span></div>
+          <div className="cd-row"><span>Booking ID</span><span>#{booking.bookingId}</span></div>
+          <div className="cd-row"><span>Venue</span><span>{booking.venueName}</span></div>
+          <div className="cd-row"><span>Status</span><span>{booking.status}</span></div>
+          <div className="cd-row"><span>Dates</span><span>{booking.startDate} → {booking.endDate}</span></div>
+          <div className="cd-row"><span>Guests</span><span>{booking.noOfGuests}</span></div>
+          <div className="cd-row total"><span>Amount paid</span><span>₹{booking.cost}</span></div>
         </div>
 
         <div className="confirmation-actions">

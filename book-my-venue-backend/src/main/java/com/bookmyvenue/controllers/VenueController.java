@@ -7,15 +7,20 @@ import com.bookmyvenue.dto.ApiResponse;
 import com.bookmyvenue.dto.FoodCategoryDto;
 import com.bookmyvenue.dto.VenueCardResponse;
 import com.bookmyvenue.dto.VenueCustomerResponse;
+import com.bookmyvenue.services.BookingService;
 import com.bookmyvenue.services.MenuService;
 import com.bookmyvenue.services.VenueService;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import utils.PrincipleUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +33,7 @@ public class VenueController {
 
     final private VenueService venueService;
     final private MenuService menuService;
-
+    final private BookingService bookingService;
 
 
     @PostMapping("")
@@ -60,5 +65,16 @@ public class VenueController {
         return ResponseEntity.ok().body(new ApiResponse<VenueCustomerResponse>(true,null, resp,LocalDateTime.now()));
 
     }
+    @GetMapping("/{venueId}/availability")
+	public ResponseEntity<?> checkAvailability(
+	        @PathVariable Long venueId,
+	        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+	        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+	    boolean available = bookingService.isVenueAvailable(venueId, startDate, endDate);
+	    Map<String, Object> data = new HashMap<>();
+	    data.put("available", available);
+	    return ResponseEntity.ok(new ApiResponse<Map<String, Object>>(true, "OK", data,LocalDateTime.now()));
+	}
 
 }

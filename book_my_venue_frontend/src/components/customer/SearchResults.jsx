@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo,useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { db } from "../../data/mockData";
 import VenueCard from  "./VenueCard";
 import "./SearchResults.css";
-
+import { getAllVenues } from "../../api/venueService";
 export default function SearchResults() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialSearch = searchParams.get("search") || "";
@@ -14,12 +14,26 @@ export default function SearchResults() {
   const [minCapacity, setMinCapacity] = useState("");
   const [sortBy, setSortBy] = useState("popularity");
 
-  const allVenues = db.getVenues();
-  const localities = [...new Set(allVenues.map((v) => v.locality))];
+  // const allVenues = db.getVenues();
+  const [venues,setVenues]=useState([]);
+  useEffect(()=>{
+      
+      async function fetchData() {
+        const response=await getAllVenues();
+        
+       
+        setVenues(  response.data)
+        console.log(response.data)
+  
+      }
+      fetchData()
+      
+  },[])
+  const localities = [...new Set(venues.map((v) => v.locality))];
 
   const results = useMemo(() => {
-    let list = allVenues.filter((v) =>
-      v.venue_name.toLowerCase().includes(search.toLowerCase())
+    let list = venues.filter((v) =>
+      v.venueName.toLowerCase().includes(search.toLowerCase())
     );
     if (locality) list = list.filter((v) => v.locality === locality);
     if (minCapacity) list = list.filter((v) => v.guest_capacity >= Number(minCapacity));
@@ -52,7 +66,7 @@ export default function SearchResults() {
         withRating.sort((a, b) => b.popularity - a.popularity);
     }
     return withRating;
-  }, [allVenues, search, locality, minCapacity, sortBy]);
+  }, [venues, search, locality, minCapacity, sortBy]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -115,7 +129,7 @@ export default function SearchResults() {
           ) : (
             <div className="venue-grid">
               {results.map((v) => (
-                <VenueCard key={v.venue_id} venue={v} />
+                <VenueCard key={v.venueId} venue={v} />
               ))}
             </div>
           )}

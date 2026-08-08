@@ -1,5 +1,6 @@
 package com.bookmyvenue.entities;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.hibernate.engine.profile.Fetch;
@@ -37,9 +38,9 @@ public class BookedFoodItem {
      private FoodItem foodItem;
      
      
-     private Double cost;
+     private BigDecimal cost;
      
-     @ManyToOne
+     @ManyToOne(fetch = FetchType.LAZY)
      @JoinColumn(name="booking_id")
      private Booking booking;
 }
